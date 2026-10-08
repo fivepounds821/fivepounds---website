@@ -287,7 +287,7 @@
     </div>
   </footer>
 
-  <script>
+ <script>
     // 已更新为最新接收订单的电话号码
     const WHATSAPP_NUMBER = "601110859232";
 
@@ -301,8 +301,8 @@
 
     const timeSlots = {
       "Sin Chooi Hong Kopitiam": ["8:00am – 9:00am", "9:00am – 10:00am", "10:00am – 11:00am", "11:00am – 12:00pm"],
-      "Taman Pulasan": ["2:00pm – 3:00pm", "3:00pm – 4:00pm", "4:00pm – 5:00pm", "5:00pm – 6:00pm"],
-      "Grab Express": ["2:00pm – 3:00pm", "3:00pm – 4:00pm", "4:00pm – 5:00pm", "5:00pm – 6:00pm"]
+      "Taman Pulasan": ["2:00pm – 3:00pm", "3:00pm – 4:00pm", "4:00pm – 5:00pm", "5:00pm – 6:00pm", "6:00pm – 7:00pm"],
+      "Grab Express": ["2:00pm – 3:00pm", "3:00pm – 4:00pm", "4:00pm – 5:00pm", "5:00pm – 6:00pm", "6:00pm – 7:00pm"]
     };
 
     const form = document.getElementById("orderForm");
@@ -326,7 +326,7 @@
     const today = new Date();
     dateInput.min = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
 
-// 添加商品行
+    // 添加商品行
     function addOrderLine(productName = "", sizeLabel = "") {
       lineId++;
       const id = lineId;
@@ -343,7 +343,7 @@
           </select>
         </div>
         <div>
-          <!-- 醒目的 Size 标签与边框 -->
+          <!-- 显眼的 Size 标签与红棕色警告边框 -->
           <label style="color: #8d2c1d; font-weight: 700;">Size / Option *</label>
           <select class="size-select" required style="border-color: #8d2c1d; font-weight: 600;">
             <option value="">-- Select Size --</option>
@@ -375,28 +375,13 @@
             sizeSelect.appendChild(o);
           });
           
+          // 默认留空，强制让顾客选择 Size
           if (sizeLabel) {
             sizeSelect.value = sizeLabel;
           }
         }
         updateSummary();
       }
-
-      if (productName) {
-        prodSelect.value = productName;
-        populateSizes();
-      }
-
-      prodSelect.addEventListener("change", populateSizes);
-      sizeSelect.addEventListener("change", updateSummary);
-      qtyInput.addEventListener("input", updateSummary);
-      removeBtn.addEventListener("click", () => {
-        line.remove();
-        updateSummary();
-      });
-
-      updateSummary();
-    }
 
       if (productName) {
         prodSelect.value = productName;
@@ -539,6 +524,20 @@
       formMessage.textContent = "";
 
       const lines = orderItems.querySelectorAll(".order-line");
+
+      // 检查 1：是否有选了蛋糕但没选 Size 的情况
+      const hasMissingSize = Array.from(lines).some(line => {
+        const prod = line.querySelector(".prod-select").value;
+        const size = line.querySelector(".size-select").value;
+        return prod && !size;
+      });
+
+      if (hasMissingSize) {
+        formMessage.className = "form-message error";
+        formMessage.textContent = "Please select a size for all chosen desserts.";
+        return;
+      }
+
       let validItems = [];
       let totalAmount = 0;
 
@@ -562,18 +561,6 @@
         return;
       }
 
-      const hasMissingSize = Array.from(lines).some(line => {
-        const prod = line.querySelector(".prod-select").value;
-        const size = line.querySelector(".size-select").value;
-        return prod && !size;
-      });
-
-      if (hasMissingSize) {
-        formMessage.className = "form-message error";
-        formMessage.textContent = "Please select a size for all chosen desserts.";
-        return;
-      } 
-
       const name = form.querySelector('input[name="name"]').value.trim();
       const phone = form.querySelector('input[name="phone"]').value.trim();
       const date = form.querySelector('input[name="date"]').value;
@@ -591,14 +578,16 @@
         formMessage.textContent = "Please fill in all required fields.";
         return;
       }
+
+      // 检查 2：日期限制只能选五、六、日
       const selectedDate = new Date(date + "T00:00:00");
       const dayOfWeek = selectedDate.getDay();
-
       if (dayOfWeek !== 0 && dayOfWeek !== 5 && dayOfWeek !== 6) {
-         formMessage.className = "form-message error";
-         formMessage.textContent = "Orders are only available on Friday, Saturday, or Sunday.";
-         return;
+        formMessage.className = "form-message error";
+        formMessage.textContent = "Orders are only available on Friday, Saturday, or Sunday.";
+        return;
       }
+
       if (method === "Self Collection" && !colPoint) {
         formMessage.className = "form-message error";
         formMessage.textContent = "Please choose a collection point.";
