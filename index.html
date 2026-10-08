@@ -116,7 +116,15 @@
         <h2>Before you <em>order.</em></h2>
       </div>
       <div class="detail-grid">
-        <article class="detail-card"><span class="detail-no">01</span><h3>Order days</h3><p>Orders are available Friday–Sunday only. Pre-orders close every Thursday.</p></article>
+<article class="detail-card">
+  <span class="detail-no">01</span>
+  <h3>Order days</h3>
+  <!-- 模式 A：五六日限制（已注释，取消注释即可恢复）
+  <p>Orders are available Friday–Sunday only. Pre-orders close every Thursday.</p>
+  -->
+  模式 B：每天开放（当前使用中）
+  <p>Pre-orders are open daily. Made in small batches weekly.</p>
+</article>        
         <article class="detail-card"><span class="detail-no">02</span><h3>Small batch</h3><p>Limited quantities each week.</p></article>
         <article class="detail-card"><span class="detail-no">03</span><h3>Free extras</h3><p>Candle + birthday cake topper are available free upon request.</p></article>
         <article class="detail-card"><span class="detail-no">04</span><h3>Confirmation</h3><p>Your request is confirmed on WhatsApp.</p></article>
@@ -193,8 +201,11 @@
       <div class="order-intro">
         <p class="section-kicker">04 / Place your order</p>
         <h2>Build your <em>order.</em></h2>
-        <p class="muted">Orders are available Friday–Sunday only. Pre-orders close every Thursday. I’ll confirm availability on WhatsApp.</p>
-      </div>
+<!-- 模式 A：五六日限制（已注释）
+<p class="muted">Orders are available Friday–Sunday only. Pre-orders close every Thursday. I’ll confirm availability on WhatsApp.</p>
+-->
+模式 B：每天开放（当前使用中）
+<p class="muted">Pre-orders are open daily. I’ll confirm availability on WhatsApp.</p>      </div>
 
       <div class="order-layout">
         <form id="orderForm" class="order-form" novalidate>
