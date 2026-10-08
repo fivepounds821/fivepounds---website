@@ -119,10 +119,10 @@
 <article class="detail-card">
   <span class="detail-no">01</span>
   <h3>Order days</h3>
-  <!-- 模式 A：五六日限制（已注释，取消注释即可恢复）
+  <!-- Mode A: Fri-Sun Only (Disabled)
   <p>Orders are available Friday–Sunday only. Pre-orders close every Thursday.</p>
   -->
-  模式 B：每天开放（当前使用中）
+  Mode B: Daily (Active)
   <p>Pre-orders are open daily. Made in small batches weekly.</p>
 </article>        
         <article class="detail-card"><span class="detail-no">02</span><h3>Small batch</h3><p>Limited quantities each week.</p></article>
@@ -224,7 +224,7 @@
             <div class="form-grid">
               <label>Full name<input name="name" autocomplete="name" required maxlength="80" placeholder="Your name"></label>
               <label>WhatsApp number<input name="phone" autocomplete="tel" required maxlength="30" placeholder="012-345 6789"></label>
-<label>Preferred date <span style="font-weight: normal; text-transform: none; opacity: 0.75;">(Fri – Sun only)</span>
+<label>Preferred date <!-- <span style="..."> (Fri – Sun only)</span> -->
   <input name="date" type="date" required>
 </label>            </div>
           </div>
