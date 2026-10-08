@@ -326,7 +326,7 @@
     const today = new Date();
     dateInput.min = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
 
-    // 添加商品行
+// 添加商品行
     function addOrderLine(productName = "", sizeLabel = "") {
       lineId++;
       const id = lineId;
@@ -343,9 +343,10 @@
           </select>
         </div>
         <div>
-          <label>Size / Option</label>
-          <select class="size-select" required>
-            <option value="">Select size</option>
+          <!-- 醒目的 Size 标签与边框 -->
+          <label style="color: #8d2c1d; font-weight: 700;">Size / Option *</label>
+          <select class="size-select" required style="border-color: #8d2c1d; font-weight: 600;">
+            <option value="">-- Select Size --</option>
           </select>
         </div>
         <div>
@@ -364,7 +365,7 @@
 
       function populateSizes() {
         const selectedProd = products.find(p => p.name === prodSelect.value);
-        sizeSelect.innerHTML = '<option value="">Select size</option>';
+        sizeSelect.innerHTML = '<option value="">-- Select Size --</option>';
         if (selectedProd) {
           selectedProd.options.forEach(opt => {
             const o = document.createElement("option");
@@ -373,14 +374,29 @@
             o.textContent = `${opt.label} (RM${opt.price})`;
             sizeSelect.appendChild(o);
           });
+          
           if (sizeLabel) {
             sizeSelect.value = sizeLabel;
-          } else if (selectedProd.options.length > 0) {
-            sizeSelect.value = selectedProd.options[0].label;
           }
         }
         updateSummary();
       }
+
+      if (productName) {
+        prodSelect.value = productName;
+        populateSizes();
+      }
+
+      prodSelect.addEventListener("change", populateSizes);
+      sizeSelect.addEventListener("change", updateSummary);
+      qtyInput.addEventListener("input", updateSummary);
+      removeBtn.addEventListener("click", () => {
+        line.remove();
+        updateSummary();
+      });
+
+      updateSummary();
+    }
 
       if (productName) {
         prodSelect.value = productName;
@@ -545,6 +561,18 @@
         formMessage.textContent = "Please add at least one dessert to your order.";
         return;
       }
+
+      const hasMissingSize = Array.from(lines).some(line => {
+        const prod = line.querySelector(".prod-select").value;
+        const size = line.querySelector(".size-select").value;
+        return prod && !size;
+      });
+
+      if (hasMissingSize) {
+        formMessage.className = "form-message error";
+        formMessage.textContent = "Please select a size for all chosen desserts.";
+        return;
+      } 
 
       const name = form.querySelector('input[name="name"]').value.trim();
       const phone = form.querySelector('input[name="phone"]').value.trim();
