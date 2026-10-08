@@ -580,6 +580,7 @@
       }
 
       // 检查 2：日期限制只能选五、六、日
+      /*
       const selectedDate = new Date(date + "T00:00:00");
       const dayOfWeek = selectedDate.getDay();
       if (dayOfWeek !== 0 && dayOfWeek !== 5 && dayOfWeek !== 6) {
@@ -593,6 +594,7 @@
         formMessage.textContent = "Please choose a collection point.";
         return;
       }
+      */
 
       if (method === "Grab Express" && !address) {
         formMessage.className = "form-message error";
