@@ -213,8 +213,9 @@
             <div class="form-grid">
               <label>Full name<input name="name" autocomplete="name" required maxlength="80" placeholder="Your name"></label>
               <label>WhatsApp number<input name="phone" autocomplete="tel" required maxlength="30" placeholder="012-345 6789"></label>
-              <label>Preferred date<input name="date" type="date" required></label>
-            </div>
+<label>Preferred date <span style="font-weight: normal; text-transform: none; opacity: 0.75;">(Fri – Sun only)</span>
+  <input name="date" type="date" required>
+</label>            </div>
           </div>
 
           <div class="form-section">
@@ -562,7 +563,14 @@
         formMessage.textContent = "Please fill in all required fields.";
         return;
       }
+      const selectedDate = new Date(date + "T00:00:00");
+      const dayOfWeek = selectedDate.getDay();
 
+      if (dayOfWeek !== 0 && dayOfWeek !== 5 && dayOfWeek !== 6) {
+         formMessage.className = "form-message error";
+         formMessage.textContent = "Orders are only available on Friday, Saturday, or Sunday.";
+         return;
+      }
       if (method === "Self Collection" && !colPoint) {
         formMessage.className = "form-message error";
         formMessage.textContent = "Please choose a collection point.";
