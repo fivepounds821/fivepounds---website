@@ -140,7 +140,7 @@
       <div class="menu-category">
         <div class="category-head">
           <h3 style="color: #8d2c1d;">11.11 Special Bundles ⚡</h3>
-          <p>Limited Time Offer • 🌟 Bundle Deals</p>
+          <p style="color: #8d2c1d; font-weight: 700;">Valid for 11 Nov & 12 Nov Orders Only 📅</p>
         </div>
         <div class="product-grid">
 
@@ -609,7 +609,20 @@ Mode B: Daily (Active)
         formMessage.textContent = "Please select a size for all chosen desserts.";
         return;
       }
+// 检查：如果选了 11.11 优惠组合，Preferred Date 必须是 11月11日 或 11月12日
+      const has1111Bundle = Array.from(lines).some(line => {
+        const prod = line.querySelector(".prod-select").value;
+        return prod.includes("[11.11]");
+      });
 
+      if (has1111Bundle && date) {
+        const [year, month, day] = date.split("-"); // date 格式为 YYYY-MM-DD
+        if (month !== "11" || (day !== "11" && day !== "12")) {
+          formMessage.className = "form-message error";
+          formMessage.textContent = "11.11 Special Bundles are only available for Nov 11 & Nov 12 orders.";
+          return;
+        }
+      }
       let validItems = [];
       let totalAmount = 0;
 
