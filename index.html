@@ -136,7 +136,64 @@
         <div><p class="section-kicker">02 / Menu</p><h2>Current <em>collection.</em></h2></div>
         <p class="menu-note">100% Anchor Dairy Cream<br>Premium imported tea<br>Made in small batches</p>
       </div>
+<!-- ⚡ 11.11 专属活动分类卡片 -->
+      <div class="menu-category">
+        <div class="category-head">
+          <h3 style="color: #8d2c1d;">11.11 Special Bundles ⚡</h3>
+          <p>Limited Time Offer • 🌟 Bundle Deals</p>
+        </div>
+        <div class="product-grid">
 
+          <!-- Bundle A -->
+          <div class="product-card" style="border: 2px solid #8d2c1d;">
+            <div class="product-info">
+              <div>
+                <span class="pill" style="background:#8d2c1d; color:#fff;">11.11 Promo</span>
+                <h4>Bundle A (Signature)</h4>
+                <p>5" Earl Grey Biscoff + Pistamisu Box</p>
+              </div>
+              <div class="price-stack">
+                <span style="text-decoration: line-through; opacity: 0.5; font-size: 13px;">RM93</span>
+                <strong style="color: #8d2c1d; font-size: 18px;">RM79</strong>
+              </div>
+            </div>
+            <button type="button" class="add-product" data-add='{"product":"[11.11] Bundle A (Signature)"}'>Add to order +</button>
+          </div>
+
+          <!-- Bundle B -->
+          <div class="product-card" style="border: 2px solid #8d2c1d;">
+            <div class="product-info">
+              <div>
+                <span class="pill" style="background:#8d2c1d; color:#fff;">11.11 Promo</span>
+                <h4>Bundle B (Sharing)</h4>
+                <p>5" Signature + 4" Uji Matcha</p>
+              </div>
+              <div class="price-stack">
+                <span style="text-decoration: line-through; opacity: 0.5; font-size: 13px;">RM84</span>
+                <strong style="color: #8d2c1d; font-size: 18px;">RM71</strong>
+              </div>
+            </div>
+            <button type="button" class="add-product" data-add='{"product":"[11.11] Bundle B (Sharing)"}'>Add to order +</button>
+          </div>
+
+          <!-- Bundle C -->
+          <div class="product-card" style="border: 2px solid #8d2c1d;">
+            <div class="product-info">
+              <div>
+                <span class="pill" style="background:#8d2c1d; color:#fff;">11.11 Promo</span>
+                <h4>Bundle C (Entry)</h4>
+                <p>4" Earl Grey + Signature Tiramisu Box</p>
+              </div>
+              <div class="price-stack">
+                <span style="text-decoration: line-through; opacity: 0.5; font-size: 13px;">RM43</span>
+                <strong style="color: #8d2c1d; font-size: 18px;">RM38</strong>
+              </div>
+            </div>
+            <button type="button" class="add-product" data-add='{"product":"[11.11] Bundle C (Entry)"}'>Add to order +</button>
+          </div>
+
+        </div>
+      </div>
       <div class="menu-category">
         <div class="category-head"><h3>Basque Burnt Cheesecake</h3><p>4-inch Petite · 5-inch Signature</p></div>
         <div class="product-grid">
@@ -303,6 +360,10 @@ Mode B: Daily (Active)
     const WHATSAPP_NUMBER = "601110859232";
 
     const products = [
+      // ⚡ 11.11 双11专属优惠组合包
+      { name: "[11.11] Bundle A (Signature)", category: "11.11 Specials", options: [{ label: "5\" Premium Earl Grey + Pistamisu", price: 79 }] },
+      { name: "[11.11] Bundle B (Sharing)", category: "11.11 Specials", options: [{ label: "5\" Signature + 4\" MatchaMelt", price: 71 }] },
+      { name: "[11.11] Bundle C (Entry)", category: "11.11 Specials", options: [{ label: "4\" Premium Earl Grey + Signature Tiramisu ", price: 38 }] },
       { name: "Signature", category: "Basque Burnt Cheesecake", options: [{ label: "4-inch", price: 20 }, { label: "5-inch", price: 52 }] },
       { name: "MatchaMelt", category: "Basque Burnt Cheesecake", options: [{ label: "4-inch", price: 32 }, { label: "5-inch", price: 75 }] },
       { name: "Premium Earl Grey", category: "Basque Burnt Cheesecake", options: [{ label: "4-inch", price: 25 }, { label: "5-inch", price: 68 }] },
