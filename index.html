@@ -609,20 +609,7 @@ Mode B: Daily (Active)
         formMessage.textContent = "Please select a size for all chosen desserts.";
         return;
       }
-// 检查：如果选了 11.11 优惠组合，Preferred Date 必须是 11月11日 或 11月12日
-      const has1111Bundle = Array.from(lines).some(line => {
-        const prod = line.querySelector(".prod-select").value;
-        return prod.includes("[11.11]");
-      });
 
-      if (has1111Bundle && date) {
-        const [year, month, day] = date.split("-"); // date 格式为 YYYY-MM-DD
-        if (month !== "11" || (day !== "11" && day !== "12")) {
-          formMessage.className = "form-message error";
-          formMessage.textContent = "11.11 Special Bundles are only available for Nov 11 & Nov 12 orders.";
-          return;
-        }
-      }
       let validItems = [];
       let totalAmount = 0;
 
@@ -642,44 +629,51 @@ Mode B: Daily (Active)
 
       if (validItems.length === 0) {
         formMessage.className = "form-message error";
-        formMessage.textContent = "Please add at least one dessert to your order.";
+        formMessage.textContent = "Please select at least one dessert and option.";
         return;
       }
 
       const name = form.querySelector('input[name="name"]').value.trim();
       const phone = form.querySelector('input[name="phone"]').value.trim();
       const date = form.querySelector('input[name="date"]').value;
-      const method = form.querySelector('input[name="method"]:checked').value;
+      const methodRadio = form.querySelector('input[name="method"]:checked');
+      const method = methodRadio ? methodRadio.value : "Self Collection";
       const colPoint = collectionPoint.value;
       const time = timeSelect.value;
-      const address = form.querySelector('textarea[name="address"]').value.trim();
+      const addressInput = form.querySelector('textarea[name="address"]');
+      const address = addressInput ? addressInput.value.trim() : "";
       const candle = form.querySelector('input[name="candle"]').checked ? "Yes" : "No";
       const birthdayCakeTopper = form.querySelector('input[name="birthdayCakeTopper"]').checked ? "Yes" : "No";
-      const notes = form.querySelector('textarea[name="notes"]').value.trim();
+      const notesInput = form.querySelector('textarea[name="notes"]');
+      const notes = notesInput ? notesInput.value.trim() : "";
       const confirmChecked = document.getElementById("confirmInfo").checked;
 
+      // 2. 基础字段检查
       if (!name || !phone || !date || !time || !confirmChecked) {
         formMessage.className = "form-message error";
-        formMessage.textContent = "Please fill in all required fields.";
+        formMessage.textContent = "Please fill in all required fields and check the confirmation box.";
         return;
       }
 
-      // 检查 2：日期限制只能选五、六、日
-      /*
-      const selectedDate = new Date(date + "T00:00:00");
-      const dayOfWeek = selectedDate.getDay();
-      if (dayOfWeek !== 0 && dayOfWeek !== 5 && dayOfWeek !== 6) {
-        formMessage.className = "form-message error";
-        formMessage.textContent = "Orders are only available on Friday, Saturday, or Sunday.";
-        return;
+      // 3. 11.11 Bundle 日期校验（仅针对选了 11.11 套餐的订单）
+      const has1111Bundle = validItems.some(item => item.prod.includes("[11.11]"));
+      if (has1111Bundle) {
+        const dateParts = date.split("-");
+        const month = dateParts[1];
+        const day = dateParts[2];
+        if (month !== "11" || (day !== "11" && day !== "12")) {
+          formMessage.className = "form-message error";
+          formMessage.textContent = "11.11 Special Bundles are only available for Nov 11 & Nov 12 orders.";
+          return;
+        }
       }
 
+      // 4. 取货方式校验
       if (method === "Self Collection" && !colPoint) {
         formMessage.className = "form-message error";
         formMessage.textContent = "Please choose a collection point.";
         return;
       }
-      */
 
       if (method === "Grab Express" && !address) {
         formMessage.className = "form-message error";
@@ -687,7 +681,7 @@ Mode B: Daily (Active)
         return;
       }
 
-      // 组合 WhatsApp 文本消息
+      // 5. 组合 WhatsApp 消息并跳转
       let msg = `*New Order Request — Fivepounds_*\n\n`;
       msg += `*Customer Details:*\n`;
       msg += `• Name: ${name}\n`;
