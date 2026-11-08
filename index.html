@@ -23,7 +23,7 @@
 
     .site-header{position:sticky;top:0;z-index:30;background:rgba(246,239,223,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
     .header-inner{max-width:1280px;margin:auto;padding:16px 5vw;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px}
-    .brand{display:inline-flex;flex-direction:column;gap:0;width:max-content}.brand-name{font:700 25px/1 var(--serif);letter-spacing:-.03em}.brand-tag{font-size:9px;letter-spacing:.16em;text-transform:uppercase;opacity:.6}
+    .brand{display:inline-flex;flex-direction:column;gap:0;width:max-content}.brand-name{font:00 25px/1 var(--serif);letter-spacing:-.03em}.brand-tag{font-size:9px;letter-spacing:.16em;text-transform:uppercase;opacity:.6}
     .nav{display:flex;gap:28px;font-size:13px;font-weight:600;letter-spacing:.07em;text-transform:uppercase}.nav a{transition:opacity .2s}.nav a:hover{opacity:.55}
     .nav-order{justify-self:end;border:1px solid var(--ink);padding:9px 15px;border-radius:999px;font-size:13px;font-weight:700}.nav-order span{margin-left:6px}
     .mobile-nav{display:none}
@@ -239,7 +239,7 @@
         <p class="muted">Choose one collection point below, or select Grab Express for delivery.</p>
         <div class="location-list">
           <div class="location-item"><strong>Sin Chooi Hong Kopitiam</strong><span>8:00am – 12:00pm</span></div>
-          <div class="location-item"><strong>Taman Pulasan</strong><span>2:00pm – 6:00pm</span></div>
+          <div class="location-item"><strong>Taman Pulasan</strong><span>2:00pm – 5:00pm</span></div>
         </div>
       </div>
       <div class="collection-grid">
@@ -373,8 +373,8 @@ Mode B: Daily (Active)
 
     const timeSlots = {
       "Sin Chooi Hong Kopitiam": ["8:00am – 9:00am", "9:00am – 10:00am", "10:00am – 11:00am", "11:00am – 12:00pm"],
-      "Taman Pulasan": ["2:00pm – 3:00pm", "3:00pm – 4:00pm", "4:00pm – 5:00pm", "5:00pm – 6:00pm", "6:00pm – 7:00pm"],
-      "Grab Express": ["2:00pm – 3:00pm", "3:00pm – 4:00pm", "4:00pm – 5:00pm", "5:00pm – 6:00pm", "6:00pm – 7:00pm"]
+      "Taman Pulasan": ["2:00pm – 3:00pm", "3:00pm – 4:00pm", "4:00pm – 5:00pm"],
+      "Grab Express": ["2:00pm – 3:00pm", "3:00pm – 4:00pm", "4:00pm – 5:00pm"]
     };
 
     const form = document.getElementById("orderForm");
