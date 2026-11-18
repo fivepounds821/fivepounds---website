@@ -55,6 +55,11 @@
     .success-panel{max-width:1280px;margin:0 auto 22px;padding:24px 6vw;background:var(--paper);border:1px solid var(--line);display:none}.success-panel.show{display:block}.success-panel h3{margin:0 0 5px;font:500 30px/1 var(--serif)}.success-panel p{margin:0 0 16px;font-size:14px;color:var(--soft)}.success-actions{display:flex;gap:10px;flex-wrap:wrap}.secondary-btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border:1px solid var(--ink);border-radius:999px;font-size:13px;font-weight:700}.primary-btn{background:var(--ink);color:#fff}
     .site-footer{display:flex;justify-content:space-between;gap:30px;padding:34px max(6vw,24px);background:var(--paper);border-top:1px solid var(--line)}.footer-brand{font:700 24px/1 var(--serif)}.footer-meta{margin:7px 0 0;font-size:13px;color:var(--soft)}.footer-contact{display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:13px}.footer-contact a{font-weight:700}.footer-contact a:hover{opacity:.55}
 
+    .limited-visual{aspect-ratio:1/.8;padding:22px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;overflow:hidden}
+    .limited-visual strong{font:500 clamp(30px,3vw,42px)/.98 var(--serif);letter-spacing:-.04em}
+    .limited-visual small{font-size:9px;letter-spacing:.18em;opacity:.65}
+    .limited-matcha{background:radial-gradient(circle at 82% 22%,rgba(255,255,255,.62) 0 18%,transparent 18.5%),#dce4c4}
+    .limited-choco{background:radial-gradient(circle at 82% 22%,rgba(255,255,255,.48) 0 18%,transparent 18.5%),#dfc8b7}
     .rewards-section{display:grid;grid-template-columns:1.05fr .95fr;gap:6vw;align-items:center;background:#e8dcc5;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
     .rewards-copy .btn{margin-top:14px}
     .rewards-note{max-width:430px;margin:17px 0 0;font-size:12px;color:var(--soft)}
@@ -207,12 +212,12 @@
         <div class="category-head"><h3>Limited flavours</h3><p>Small-batch specials · subject to availability</p></div>
         <div class="product-grid two">
           <article class="product-card">
-            <div class="product-image"><img src="assets/matchamelt.jpg" alt="Matcha Strawberry cheesecake"></div>
+            <div class="limited-visual limited-matcha" aria-label="Matcha Strawberry limited flavour artwork"><span class="pill pill-green">LIMITED</span><strong>Matcha<br>Strawberry</strong><small>SEASONAL SPECIAL</small></div>
             <div class="product-info"><div><span class="pill pill-green">LIMITED</span><h4>Matcha Strawberry</h4><p>Matcha and strawberry in a special seasonal combination.</p></div><div class="price-stack"><strong>5" · RM85</strong></div></div>
             <button type="button" class="add-product" data-add='{"product":"Matcha Strawberry"}'>Add to order +</button>
           </article>
           <article class="product-card">
-            <div class="product-image"><img src="assets/matchamelt.jpg" alt="Chocolate matcha cheesecake"></div>
+            <div class="limited-visual limited-choco" aria-label="Choco Matcha limited flavour artwork"><span class="pill pill-tan">LIMITED</span><strong>Choco<br>Matcha</strong><small>SEASONAL SPECIAL</small></div>
             <div class="product-info"><div><span class="pill pill-tan">LIMITED</span><h4>Choco Matcha</h4><p>A chocolate and matcha special for a richer dessert moment.</p></div><div class="price-stack"><strong>5" · RM80</strong></div></div>
             <button type="button" class="add-product" data-add='{"product":"Choco Matcha"}'>Add to order +</button>
           </article>
