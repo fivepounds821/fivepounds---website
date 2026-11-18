@@ -55,13 +55,42 @@
     .success-panel{max-width:1280px;margin:0 auto 22px;padding:24px 6vw;background:var(--paper);border:1px solid var(--line);display:none}.success-panel.show{display:block}.success-panel h3{margin:0 0 5px;font:500 30px/1 var(--serif)}.success-panel p{margin:0 0 16px;font-size:14px;color:var(--soft)}.success-actions{display:flex;gap:10px;flex-wrap:wrap}.secondary-btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border:1px solid var(--ink);border-radius:999px;font-size:13px;font-weight:700}.primary-btn{background:var(--ink);color:#fff}
     .site-footer{display:flex;justify-content:space-between;gap:30px;padding:34px max(6vw,24px);background:var(--paper);border-top:1px solid var(--line)}.footer-brand{font:700 24px/1 var(--serif)}.footer-meta{margin:7px 0 0;font-size:13px;color:var(--soft)}.footer-contact{display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:13px}.footer-contact a{font-weight:700}.footer-contact a:hover{opacity:.55}
 
+    .limited-visual{aspect-ratio:1/.8;padding:22px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;overflow:hidden}
+    .limited-visual strong{font:500 clamp(30px,3vw,42px)/.98 var(--serif);letter-spacing:-.04em}
+    .limited-visual small{font-size:9px;letter-spacing:.18em;opacity:.65}
+    .limited-matcha{background:radial-gradient(circle at 82% 22%,rgba(255,255,255,.62) 0 18%,transparent 18.5%),#dce4c4}
+    .limited-choco{background:radial-gradient(circle at 82% 22%,rgba(255,255,255,.48) 0 18%,transparent 18.5%),#dfc8b7}
+    .rewards-section{display:grid;grid-template-columns:1.05fr .95fr;gap:6vw;align-items:center;background:#e8dcc5;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .rewards-copy .btn{margin-top:14px}
+    .rewards-note{max-width:430px;margin:17px 0 0;font-size:12px;color:var(--soft)}
+    .rewards-card{padding:clamp(25px,4vw,42px);background:var(--paper);border:1px solid var(--line);box-shadow:var(--shadow)}
+    .rewards-card .section-kicker{font-size:10px;color:var(--soft)}
+    .stamp-row{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin:28px 0}
+    .stamp-row span{aspect-ratio:1;border:1px solid var(--tan);border-radius:50%;display:flex;align-items:center;justify-content:center;font:500 19px var(--serif);background:#f6efdf}
+    .rewards-card h3{margin:0 0 8px;font:500 33px/1.05 var(--serif)}
+    .rewards-card p{margin:0 0 14px;color:var(--soft)}
+    .rewards-card p strong{color:var(--ink)}
+    .rewards-card small{font-size:11px;color:var(--soft);line-height:1.5}
+    .quick-reorder{display:flex;justify-content:space-between;align-items:center;gap:20px;margin:0 0 25px;padding:18px 21px;background:var(--paper);border:1px solid var(--line)}
+    .quick-reorder strong{font:500 24px/1.1 var(--serif)}
+    .quick-reorder p{margin:5px 0 0;color:var(--soft);font-size:13px}
+    .quick-reorder button{flex-shrink:0;min-height:44px;padding:0 18px;border:1px solid var(--ink);border-radius:999px;background:var(--ink);color:#fff;font-weight:700}
+    .faq-section{background:var(--paper)}
+    .faq-heading{margin-bottom:30px}
+    .faq-list{max-width:900px;border-top:1px solid var(--line)}
+    .faq-list details{border-bottom:1px solid var(--line);padding:19px 2px}
+    .faq-list summary{cursor:pointer;list-style:none;font-weight:700}
+    .faq-list summary::-webkit-details-marker{display:none}
+    .faq-list summary:after{content:"+";float:right;font-size:20px;font-weight:400}
+    .faq-list details[open] summary:after{content:"−"}
+    .faq-list details p{max-width:700px;margin:12px 0 0;color:var(--soft);font-size:14px}
     @media(max-width:1000px){
       .header-inner{grid-template-columns:1fr auto}.nav{display:none}.nav-order{display:inline-flex}.mobile-nav{display:flex;overflow:auto;gap:18px;padding:9px 18px;border-top:1px solid rgba(32,26,22,.08);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(246,239,223,.96)}.mobile-nav a{white-space:nowrap}
-      .hero{grid-template-columns:1fr;min-height:auto;padding-top:72px}.hero-art{min-height:480px}.detail-grid{grid-template-columns:1fr 1fr}.collection-section{grid-template-columns:1fr}.order-layout{grid-template-columns:1fr}.order-summary{position:static}
+      .hero{grid-template-columns:1fr;min-height:auto;padding-top:72px}.hero-art{min-height:480px}.detail-grid{grid-template-columns:1fr 1fr}.collection-section{grid-template-columns:1fr}.rewards-section{grid-template-columns:1fr}.order-layout{grid-template-columns:1fr}.order-summary{position:static}
     }
     @media(max-width:700px){
       body{font-size:15px}.header-inner{padding:14px 18px}.nav-order{padding:8px 13px;font-size:12px}.section-pad{padding:64px 18px}.hero h1{font-size:50px}.hero-text{font-size:16px}.hero-art{min-height:400px}.art-circle-one{width:290px;height:290px;right:2%}.art-circle-two{width:165px;height:165px}.hero-card{width:190px}.card-a{right:2%}.card-b{left:2%;width:180px}.card-note{font-size:17px}.hero-stamp{font-size:8px}
-      .detail-grid,.product-grid,.product-grid.two,.collection-grid,.form-grid,.method-grid{grid-template-columns:1fr}.section-heading,.category-head{flex-direction:column;align-items:flex-start}.menu-note{text-align:left}.category-head p{font-size:12px}.product-info h4{font-size:23px}.product-info p{font-size:13px}.collection-card{min-height:310px;padding:25px}.collection-card h3{font-size:31px}.order-line{grid-template-columns:1fr 1fr}.order-line .item-select{grid-column:1/-1}.remove-line{justify-self:start}.site-footer{flex-direction:column}.footer-contact{gap:10px}.success-panel{margin-left:18px;margin-right:18px}
+      .detail-grid,.product-grid,.product-grid.two,.collection-grid,.form-grid,.method-grid{grid-template-columns:1fr}.section-heading,.category-head{flex-direction:column;align-items:flex-start}.menu-note{text-align:left}.category-head p{font-size:12px}.product-info h4{font-size:23px}.product-info p{font-size:13px}.collection-card{min-height:310px;padding:25px}.collection-card h3{font-size:31px}.order-line{grid-template-columns:1fr 1fr}.order-line .item-select{grid-column:1/-1}.remove-line{justify-self:start}.quick-reorder{align-items:flex-start;flex-direction:column}.quick-reorder button{width:100%}.site-footer{flex-direction:column}.footer-contact{gap:10px}.success-panel{margin-left:18px;margin-right:18px}
       
       /* 防止 iOS 手机点击输入框时页面自动放大 */
       .order-line select, .order-line input, .form-grid input, .form-grid select, .address-wrap textarea {
@@ -78,15 +107,18 @@
       <nav class="nav" aria-label="Main navigation">
         <a href="#details">Details</a>
         <a href="#menu">Menu</a>
+        <a href="#rewards">Rewards</a>
         <a href="#collection">Collection</a>
-        <a href="#order">Order</a>
+        <a href="#faq">FAQ</a>
       </nav>
       <a class="nav-order" href="#order">Order now <span>↗</span></a>
     </div>
     <nav class="mobile-nav" aria-label="Mobile navigation">
       <a href="#details">Details</a>
       <a href="#menu">Menu</a>
+      <a href="#rewards">Rewards</a>
       <a href="#collection">Collection</a>
+      <a href="#faq">FAQ</a>
       <a href="#order">Order</a>
     </nav>
   </header>
@@ -119,8 +151,7 @@
 <article class="detail-card">
   <span class="detail-no">01</span>
   <h3>Order days</h3>
-  Mode A: Sat-Sun Only
-  <p>Orders are available Saturday–Sunday only. Pre-orders close every Thursday.</p>
+  <p>Orders are open on <strong>Saturday &amp; Sunday only</strong>. Please submit your pre-order by Thursday; all requests are subject to availability and WhatsApp confirmation.</p>
 
   <!-- Mode B: Daily (Active)
   <p>Pre-orders are open daily. Made in small batches weekly.</p>   -->
@@ -176,11 +207,46 @@
           </article>
         </div>
       </div>
+
+      <div class="menu-category" style="margin-top:20px">
+        <div class="category-head"><h3>Limited flavours</h3><p>Small-batch specials · subject to availability</p></div>
+        <div class="product-grid two">
+          <article class="product-card">
+            <div class="limited-visual limited-matcha" aria-label="Matcha Strawberry limited flavour artwork"><span class="pill pill-green">LIMITED</span><strong>Matcha<br>Strawberry</strong><small>SEASONAL SPECIAL</small></div>
+            <div class="product-info"><div><span class="pill pill-green">LIMITED</span><h4>Matcha Strawberry</h4><p>Matcha and strawberry in a special seasonal combination.</p></div><div class="price-stack"><strong>5" · RM85</strong></div></div>
+            <button type="button" class="add-product" data-add='{"product":"Matcha Strawberry"}'>Add to order +</button>
+          </article>
+          <article class="product-card">
+            <div class="limited-visual limited-choco" aria-label="Choco Matcha limited flavour artwork"><span class="pill pill-tan">LIMITED</span><strong>Choco<br>Matcha</strong><small>SEASONAL SPECIAL</small></div>
+            <div class="product-info"><div><span class="pill pill-tan">LIMITED</span><h4>Choco Matcha</h4><p>A chocolate and matcha special for a richer dessert moment.</p></div><div class="price-stack"><strong>5" · RM80</strong></div></div>
+            <button type="button" class="add-product" data-add='{"product":"Choco Matcha"}'>Add to order +</button>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="rewards" class="rewards-section section section-pad">
+      <div class="rewards-copy">
+        <p class="section-kicker">03 / FIVEPOUNDS Sweet Circle</p>
+        <h2>A little sweetness.<br><em>A little reward.</em></h2>
+        <p class="muted">We love seeing you come back. Join our Sweet Circle and collect one stamp every time you complete an order.</p>
+        <a class="btn btn-dark" href="#order">Join the Sweet Circle <span style="margin-left:8px">↗</span></a>
+        <p class="rewards-note">No account or password needed. Choose to join at checkout; stamps are checked and recorded manually using your WhatsApp number for now.</p>
+      </div>
+      <div class="rewards-card">
+        <p class="section-kicker">YOUR LITTLE REWARD JOURNEY</p>
+        <div class="stamp-row" aria-label="Five stamps to a reward">
+          <span>01</span><span>02</span><span>03</span><span>04</span><span>05</span>
+        </div>
+        <h3>Collect 5 stamps</h3>
+        <p>Enjoy <strong>RM5 OFF</strong> your next order of RM40 or more.</p>
+        <small>One stamp is awarded for each completed paid order. Stamps are not issued for cancelled or unpaid requests. Ask us to check your balance on WhatsApp.</small>
+      </div>
     </section>
 
     <section id="collection" class="collection-section section section-pad">
       <div class="collection-main">
-        <p class="section-kicker">03 / Collection</p>
+        <p class="section-kicker">04 / Collection</p>
         <h2>Pick up <em>your way.</em></h2>
         <p class="muted">Choose one collection point below, or select Grab Express for delivery.</p>
         <div class="location-list">
@@ -202,15 +268,18 @@
 
     <section id="order" class="order-section section section-pad">
       <div class="order-intro">
-        <p class="section-kicker">04 / Place your order</p>
+        <p class="section-kicker">05 / Place your order</p>
         <h2>Build your <em>order.</em></h2>
-Mode A: Sat-Sun Only
-<p class="muted">Orders are available Saturday–Sunday only. Pre-orders close every Thursday. I’ll confirm availability on WhatsApp.</p>
+<p class="muted">We currently accept orders for <strong>Saturday and Sunday only</strong> because our kitchen operates on a weekend schedule. Please pre-order by Thursday. Your requested date is confirmed only after we reply on WhatsApp.</p>
 
         <!-- Mode B: Daily (Active) 
 <p class="muted">Pre-orders are open daily. I’ll confirm availability on WhatsApp.</p> -->
      </div>
 
+      <div id="quickReorder" class="quick-reorder hidden">
+        <div><strong>Welcome back!</strong><p>Reuse the dessert selection from your last order request on this device. You can edit it before sending.</p></div>
+        <button type="button" id="quickReorderBtn">Quick reorder ↗</button>
+      </div>
       <div class="order-layout">
         <form id="orderForm" class="order-form" novalidate>
           <div class="form-section">
@@ -270,6 +339,14 @@ Mode A: Sat-Sun Only
             <input id="confirmInfo" type="checkbox" required>
             <label for="confirmInfo">I checked my order and understand this is a request. Fivepounds_ will confirm availability on WhatsApp.</label>
           </div>
+          <div class="consent">
+            <input id="rewardsConsent" type="checkbox">
+            <label for="rewardsConsent">I would like to join the Sweet Circle. I agree that FIVEPOUNDS may use my WhatsApp number and completed-order records to track my stamps and rewards. Optional.</label>
+          </div>
+          <div class="consent">
+            <input id="marketingConsent" type="checkbox">
+            <label for="marketingConsent">I agree to receive occasional WhatsApp updates about new flavours and menu drops. Optional — this does not affect my order.</label>
+          </div>
           <button id="submitBtn" class="submit-btn" type="submit">Submit order request <span>↗</span></button>
           <p id="formMessage" class="form-message" role="status" aria-live="polite"></p>
         </form>
@@ -289,6 +366,20 @@ Mode A: Sat-Sun Only
       <div class="success-actions">
         <a id="whatsappLink" class="secondary-btn primary-btn" href="#" target="_blank" rel="noopener">Continue to WhatsApp ↗</a>
         <a class="secondary-btn" href="#menu">Back to menu</a>
+      </div>
+    </section>
+    <section id="faq" class="faq-section section section-pad">
+      <div class="faq-heading">
+        <p class="section-kicker">06 / Good to know</p>
+        <h2>A few <em>little details.</em></h2>
+      </div>
+      <div class="faq-list">
+        <details><summary>Which days can I place an order for?</summary><p>FIVEPOUNDS currently accepts orders for Saturday and Sunday only. Our baking and collection schedule is arranged around weekends.</p></details>
+        <details><summary>When is my order confirmed?</summary><p>Submitting the form sends an order request. Your order is only confirmed after FIVEPOUNDS replies on WhatsApp.</p></details>
+        <details><summary>When should I pre-order?</summary><p>Please submit your request by Thursday. Weekend availability is limited and is confirmed individually on WhatsApp.</p></details>
+        <details><summary>How does Grab Express work?</summary><p>Enter your full delivery address. The delivery fee and availability will be confirmed separately on WhatsApp.</p></details>
+        <details><summary>How do Sweet Circle rewards work?</summary><p>Each completed paid order earns one stamp. Collect five stamps to receive RM5 off a future order of RM40 or more. Stamps are currently tracked manually using your WhatsApp number.</p></details>
+        <details><summary>Can I change my order after submitting?</summary><p>Contact us on WhatsApp as soon as possible. Changes depend on preparation status and weekend availability.</p></details>
       </div>
     </section>
   </main>
@@ -311,7 +402,9 @@ Mode A: Sat-Sun Only
       { name: "MatchaMelt", category: "Basque Burnt Cheesecake", options: [{ label: "4-inch", price: 32 }, { label: "5-inch", price: 75 }] },
       { name: "Premium Earl Grey", category: "Basque Burnt Cheesecake", options: [{ label: "4-inch", price: 25 }, { label: "5-inch", price: 68 }] },
       { name: "Signature Tiramisu", category: "Tiramisu", options: [{ label: "Boxed", price: 18 }, { label: "5-inch", price: 52 }] },
-      { name: "Pistamisu", category: "Tiramisu", options: [{ label: "Boxed", price: 25 }, { label: "5-inch", price: 60 }] }
+      { name: "Pistamisu", category: "Tiramisu", options: [{ label: "Boxed", price: 25 }, { label: "5-inch", price: 60 }] },
+      { name: "Matcha Strawberry", category: "Limited Flavours", options: [{ label: "5-inch", price: 85 }] },
+      { name: "Choco Matcha", category: "Limited Flavours", options: [{ label: "5-inch", price: 80 }] }
     ];
 
     const timeSlots = {
@@ -546,6 +639,43 @@ Mode A: Sat-Sun Only
     addOrderLine();
     updateFulfillmentView();
 
+    // Same-device convenience only: store the dessert selection, never personal details.
+    const LAST_ORDER_KEY = "fivepounds:last-order:v1";
+    const quickReorder = document.getElementById("quickReorder");
+    const quickReorderBtn = document.getElementById("quickReorderBtn");
+
+    function showQuickReorderIfAvailable() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(LAST_ORDER_KEY) || "null");
+        if (Array.isArray(saved) && saved.length && saved.every(item =>
+          item && products.some(p => p.name === item.prod) &&
+          typeof item.size === "string" && Number.isInteger(item.qty) && item.qty > 0
+        )) quickReorder.classList.remove("hidden");
+      } catch (error) {
+        // Storage is optional and must never block an order.
+      }
+    }
+
+    quickReorderBtn.addEventListener("click", () => {
+      try {
+        const saved = JSON.parse(localStorage.getItem(LAST_ORDER_KEY) || "[]");
+        if (!Array.isArray(saved) || !saved.length) return;
+        orderItems.innerHTML = "";
+        saved.forEach(item => {
+          addOrderLine(item.prod, item.size);
+          const lines = orderItems.querySelectorAll(".order-line");
+          lines[lines.length - 1].querySelector(".qty").value = String(item.qty);
+        });
+        updateSummary();
+        document.getElementById("order").scrollIntoView({ behavior: "smooth" });
+      } catch (error) {
+        formMessage.className = "form-message error";
+        formMessage.textContent = "Your previous selection could not be loaded. Please add your desserts again.";
+      }
+    });
+
+    showQuickReorderIfAvailable();
+
     // 提交订单跳转 WhatsApp
     form.addEventListener("submit", (e) => {
       e.preventDefault();
@@ -603,6 +733,8 @@ Mode A: Sat-Sun Only
       const notesInput = form.querySelector('textarea[name="notes"]');
       const notes = notesInput ? notesInput.value.trim() : "";
       const confirmChecked = document.getElementById("confirmInfo").checked;
+      const marketingConsent = document.getElementById("marketingConsent").checked;
+      const rewardsConsent = document.getElementById("rewardsConsent").checked;
 
       // 2. 基础字段检查
       if (!name || !phone || !date || !time || !confirmChecked) {
@@ -634,6 +766,16 @@ Mode A: Sat-Sun Only
         return;
       }
 
+      // Store the dessert selection locally for a same-device reorder next time.
+      try {
+        localStorage.setItem(LAST_ORDER_KEY, JSON.stringify(validItems.map(item => ({
+          prod: item.prod, size: item.size, qty: item.qty
+        }))));
+        quickReorder.classList.remove("hidden");
+      } catch (error) {
+        // Storage is optional; continue with WhatsApp even when unavailable.
+      }
+
       // 5. 组合 WhatsApp 消息并跳转
       let msg = `*New Order Request — Fivepounds_*\n\n`;
       msg += `*Customer Details:*\n`;
@@ -656,6 +798,9 @@ Mode A: Sat-Sun Only
       });
       msg += `*Total Amount: RM${totalAmount}*\n\n`;
 
+      msg += `*Sweet Circle & Updates:*\n`;
+      msg += `• Join Sweet Circle (purchase/stamp tracking): ${rewardsConsent ? "Yes" : "No"}\n`;
+      msg += `• Agree to occasional WhatsApp updates: ${marketingConsent ? "Yes" : "No"}\n\n`;
       msg += `*Free Extras & Notes:*\n`;
       msg += `• Free Candle: ${candle}\n`;
       msg += `• Free Birthday Cake Topper: ${birthdayCakeTopper}\n`;
