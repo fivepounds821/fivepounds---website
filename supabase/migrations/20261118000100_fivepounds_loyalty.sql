@@ -1,5 +1,5 @@
--- FIVEPOUNDS customer records and Sweet Circle loyalty ledger
--- Apply through the Supabase SQL editor or Supabase migrations.
+-- FIVEPOUNDS automatic order and Sweet Circle ledger
+-- Tables are private to server-side Edge Functions. Never expose a service/secret key in browser code.
 
 create extension if not exists pgcrypto;
 
@@ -9,7 +9,7 @@ create or replace function public.make_fivepounds_order_number()
 returns text
 language sql
 volatile
-set search_path = public
+set search_path = ''
 as $$
   select
     'FP-' ||
@@ -36,7 +36,7 @@ create table if not exists public.orders (
   customer_id uuid not null references public.customers(id),
   customer_name text not null,
   customer_phone text not null,
-  preferred_date date not null,
+  preferred_date date not null check (extract(isodow from preferred_date) in (6, 7)),
   preferred_time text not null,
   fulfillment_method text not null check (fulfillment_method in ('Self Collection', 'Grab Express')),
   collection_point text,
@@ -46,8 +46,9 @@ create table if not exists public.orders (
   item_count integer not null check (item_count > 0),
   subtotal numeric(10,2) not null check (subtotal > 0),
   discount numeric(10,2) not null default 0 check (discount >= 0 and discount <= subtotal),
-  amount_due numeric(10,2) not null check (amount_due >= 0),
-  status text not null default 'pending' check (status in ('pending', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled')),
+  amount_due numeric(10,2) not null check (amount_due = subtotal - discount),
+  status text not null default 'pending'
+    check (status in ('pending', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled')),
   paid boolean not null default false,
   paid_at timestamptz,
   rewards_opt_in_at_order boolean not null default false,
@@ -62,7 +63,8 @@ create table if not exists public.orders (
     (fulfillment_method = 'Grab Express'
       and collection_point is null
       and length(coalesce(delivery_address, '')) >= 8)
-  )
+  ),
+  check (paid = (paid_at is not null))
 );
 
 create index if not exists orders_customer_created_idx
@@ -86,19 +88,19 @@ create table if not exists public.loyalty_transactions (
 create index if not exists loyalty_customer_created_idx
   on public.loyalty_transactions(customer_id, created_at desc);
 
--- Email allowlist for the private admin page. Add the owner's verified email after setup.
+-- Only the owner's verified Supabase Auth email is placed in this allowlist.
 create table if not exists public.admin_allowlist (
-  email text primary key,
+  email text primary key check (email = lower(email)),
   created_at timestamptz not null default now()
 );
 
--- A customer earns one stamp only when an opted-in order becomes both paid and completed.
--- The unique constraint makes this idempotent if an admin repeats the action.
+-- Trigger is idempotent: the unique (order_id, transaction_type) prevents duplicate stamps.
+-- It runs as the role changing the order (the server-side service role), not as a definer.
 create or replace function public.award_fivepounds_stamp()
 returns trigger
 language plpgsql
-security definer
-set search_path = public
+security invoker
+set search_path = ''
 as $$
 begin
   if new.status = 'completed'
@@ -123,121 +125,20 @@ after insert or update of status, paid on public.orders
 for each row
 execute function public.award_fivepounds_stamp();
 
--- Used by the public order Edge Function only (service role).
--- Product prices are verified in the Edge Function before reaching this RPC.
-create or replace function public.create_fivepounds_web_order(
-  p_name text,
-  p_phone text,
-  p_preferred_date date,
-  p_preferred_time text,
-  p_fulfillment_method text,
-  p_collection_point text,
-  p_delivery_address text,
-  p_notes text,
-  p_items jsonb,
-  p_item_count integer,
-  p_subtotal numeric,
-  p_rewards_opt_in boolean,
-  p_marketing_opt_in boolean
-)
-returns table(order_id uuid, order_number text, amount_due numeric)
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  v_customer_id uuid;
-  v_rewards_opt_in boolean;
-  v_marketing_opt_in boolean;
-  v_order_id uuid;
-  v_order_number text;
-begin
-  if length(trim(coalesce(p_name, ''))) < 2 or length(p_name) > 80 then
-    raise exception 'Please enter a valid name';
-  end if;
-
-  if length(trim(coalesce(p_phone, ''))) < 9 or length(p_phone) > 18 then
-    raise exception 'Please enter a valid Malaysian phone number';
-  end if;
-
-  if p_preferred_date < (now() at time zone 'Asia/Kuala_Lumpur')::date then
-    raise exception 'The preferred date cannot be in the past';
-  end if;
-
-  if extract(dow from p_preferred_date) not in (0, 6) then
-    raise exception 'FIVEPOUNDS accepts Saturday and Sunday orders only';
-  end if;
-
-  if p_fulfillment_method not in ('Self Collection', 'Grab Express') then
-    raise exception 'Invalid collection method';
-  end if;
-
-  if p_fulfillment_method = 'Self Collection'
-     and p_collection_point not in ('Sin Chooi Hong Kopitiam', 'Taman Pulasan') then
-    raise exception 'Please choose a valid collection point';
-  end if;
-
-  if p_fulfillment_method = 'Grab Express'
-     and length(trim(coalesce(p_delivery_address, ''))) < 8 then
-    raise exception 'Please enter a complete delivery address';
-  end if;
-
-  if jsonb_typeof(p_items) <> 'array' or jsonb_array_length(p_items) = 0 then
-    raise exception 'Please add at least one dessert';
-  end if;
-
-  insert into public.customers (
-    phone, display_name, rewards_opt_in, rewards_consent_at,
-    marketing_opt_in, marketing_consent_at
-  )
-  values (
-    p_phone, trim(p_name), coalesce(p_rewards_opt_in, false),
-    case when coalesce(p_rewards_opt_in, false) then now() else null end,
-    coalesce(p_marketing_opt_in, false),
-    case when coalesce(p_marketing_opt_in, false) then now() else null end
-  )
-  on conflict (phone) do update set
-    display_name = excluded.display_name,
-    rewards_opt_in = public.customers.rewards_opt_in or excluded.rewards_opt_in,
-    rewards_consent_at = case
-      when not public.customers.rewards_opt_in and excluded.rewards_opt_in then now()
-      else public.customers.rewards_consent_at end,
-    marketing_opt_in = public.customers.marketing_opt_in or excluded.marketing_opt_in,
-    marketing_consent_at = case
-      when not public.customers.marketing_opt_in and excluded.marketing_opt_in then now()
-      else public.customers.marketing_consent_at end,
-    updated_at = now()
-  returning id, rewards_opt_in, marketing_opt_in
-  into v_customer_id, v_rewards_opt_in, v_marketing_opt_in;
-
-  insert into public.orders (
-    customer_id, customer_name, customer_phone,
-    preferred_date, preferred_time, fulfillment_method,
-    collection_point, delivery_address, notes,
-    items, item_count, subtotal, discount, amount_due,
-    rewards_opt_in_at_order, marketing_opt_in_at_order
-  )
-  values (
-    v_customer_id, trim(p_name), p_phone,
-    p_preferred_date, p_preferred_time, p_fulfillment_method,
-    case when p_fulfillment_method = 'Self Collection' then p_collection_point else null end,
-    case when p_fulfillment_method = 'Grab Express' then trim(p_delivery_address) else null end,
-    nullif(trim(coalesce(p_notes, '')), ''),
-    p_items, p_item_count, p_subtotal, 0, p_subtotal,
-    v_rewards_opt_in, v_marketing_opt_in
-  )
-  returning id, orders.order_number into v_order_id, v_order_number;
-
-  return query select v_order_id, v_order_number, p_subtotal;
-end;
-$$;
-
--- The admin applies RM5 off a qualifying order only when at least five stamps exist.
+-- Redeem one RM5 reward on an order with a subtotal >= RM40.
+-- Advisory lock serializes redemptions for the same customer across different orders.
+-- This function is invoker-rights and is granted only to the server-side service role.
 create or replace function public.redeem_fivepounds_reward(p_order_id uuid)
-returns table(order_id uuid, order_number text, discount numeric, amount_due numeric, stamps_balance integer)
+returns table(
+  order_id uuid,
+  order_number text,
+  discount numeric,
+  amount_due numeric,
+  stamps_balance integer
+)
 language plpgsql
-security definer
-set search_path = public
+security invoker
+set search_path = ''
 as $$
 declare
   v_order public.orders%rowtype;
@@ -249,6 +150,9 @@ begin
   for update;
 
   if not found then raise exception 'Order not found'; end if;
+
+  perform pg_advisory_xact_lock(hashtextextended(v_order.customer_id::text, 0));
+
   if v_order.status not in ('pending', 'confirmed') then
     raise exception 'Reward can only be applied before preparation';
   end if;
@@ -269,7 +173,8 @@ begin
     customer_id, order_id, transaction_type, stamps_delta, description
   )
   values (
-    v_order.customer_id, v_order.id, 'redeemed', -5, 'RM5 reward redeemed on RM40+ order'
+    v_order.customer_id, v_order.id, 'redeemed', -5,
+    'RM5 reward redeemed on RM40+ order'
   );
 
   update public.orders
@@ -286,8 +191,10 @@ begin
 end;
 $$;
 
--- The view is accessed only by a service-role Edge Function after admin authentication.
-create or replace view public.customer_summary as
+-- security_invoker ensures the view obeys the underlying table grants and RLS.
+create or replace view public.customer_summary
+with (security_invoker = true)
+as
 select
   c.id,
   c.display_name,
@@ -316,20 +223,31 @@ left join lateral (
   where customer_id = c.id
 ) l on true;
 
--- No browser-side table access. All writes/reads go through server-side Edge Functions.
+-- No anon or customer-browser table access. Website access is only through server Edge Functions.
 alter table public.customers enable row level security;
 alter table public.orders enable row level security;
 alter table public.loyalty_transactions enable row level security;
 alter table public.admin_allowlist enable row level security;
 
-revoke all on public.customers from anon, authenticated;
-revoke all on public.orders from anon, authenticated;
-revoke all on public.loyalty_transactions from anon, authenticated;
-revoke all on public.admin_allowlist from anon, authenticated;
-revoke all on public.customer_summary from anon, authenticated;
+revoke all on public.customers from public, anon, authenticated;
+revoke all on public.orders from public, anon, authenticated;
+revoke all on public.loyalty_transactions from public, anon, authenticated;
+revoke all on public.admin_allowlist from public, anon, authenticated;
+revoke all on public.customer_summary from public, anon, authenticated;
 
-revoke all on function public.create_fivepounds_web_order(text,text,date,text,text,text,text,text,jsonb,integer,numeric,boolean,boolean) from public, anon, authenticated;
-grant execute on function public.create_fivepounds_web_order(text,text,date,text,text,text,text,text,jsonb,integer,numeric,boolean,boolean) to service_role;
+grant usage on schema public to service_role;
+grant select, insert, update on public.customers to service_role;
+grant select, insert, update on public.orders to service_role;
+grant select, insert on public.loyalty_transactions to service_role;
+grant select, insert, update, delete on public.admin_allowlist to service_role;
+grant select on public.customer_summary to service_role;
+grant usage, select on sequence public.fivepounds_order_ref_seq to service_role;
+
+revoke all on function public.make_fivepounds_order_number() from public, anon, authenticated;
+grant execute on function public.make_fivepounds_order_number() to service_role;
+
+revoke all on function public.award_fivepounds_stamp() from public, anon, authenticated;
+grant execute on function public.award_fivepounds_stamp() to service_role;
 
 revoke all on function public.redeem_fivepounds_reward(uuid) from public, anon, authenticated;
 grant execute on function public.redeem_fivepounds_reward(uuid) to service_role;
