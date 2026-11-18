@@ -226,7 +226,7 @@
         <h2>A little sweetness.<br><em>A little reward.</em></h2>
         <p class="muted">We love seeing you come back. Join our Sweet Circle and collect one stamp every time you complete an order.</p>
         <a class="btn btn-dark" href="#order">Join the Sweet Circle <span style="margin-left:8px">↗</span></a>
-        <p class="rewards-note">No account or password needed. Stamps are checked and recorded manually using your WhatsApp number for now.</p>
+        <p class="rewards-note">No account or password needed. Choose to join at checkout; stamps are checked and recorded manually using your WhatsApp number for now.</p>
       </div>
       <div class="rewards-card">
         <p class="section-kicker">YOUR LITTLE REWARD JOURNEY</p>
@@ -335,6 +335,10 @@
             <label for="confirmInfo">I checked my order and understand this is a request. Fivepounds_ will confirm availability on WhatsApp.</label>
           </div>
           <div class="consent">
+            <input id="rewardsConsent" type="checkbox">
+            <label for="rewardsConsent">I would like to join the Sweet Circle. I agree that FIVEPOUNDS may use my WhatsApp number and completed-order records to track my stamps and rewards. Optional.</label>
+          </div>
+          <div class="consent">
             <input id="marketingConsent" type="checkbox">
             <label for="marketingConsent">I agree to receive occasional WhatsApp updates about new flavours and menu drops. Optional — this does not affect my order.</label>
           </div>
@@ -365,7 +369,7 @@
         <h2>A few <em>little details.</em></h2>
       </div>
       <div class="faq-list">
-        <details><summary>Which days can I place an order for?</summary><p>FIVEPOUNDS currently accepts orders for Saturday and Sunday only. We are based around a weekend baking and collection schedule while the baker is studying in Penang.</p></details>
+        <details><summary>Which days can I place an order for?</summary><p>FIVEPOUNDS currently accepts orders for Saturday and Sunday only. Our baking and collection schedule is arranged around weekends.</p></details>
         <details><summary>When is my order confirmed?</summary><p>Submitting the form sends an order request. Your order is only confirmed after FIVEPOUNDS replies on WhatsApp.</p></details>
         <details><summary>When should I pre-order?</summary><p>Please submit your request by Thursday. Weekend availability is limited and is confirmed individually on WhatsApp.</p></details>
         <details><summary>How does Grab Express work?</summary><p>Enter your full delivery address. The delivery fee and availability will be confirmed separately on WhatsApp.</p></details>
@@ -725,6 +729,7 @@
       const notes = notesInput ? notesInput.value.trim() : "";
       const confirmChecked = document.getElementById("confirmInfo").checked;
       const marketingConsent = document.getElementById("marketingConsent").checked;
+      const rewardsConsent = document.getElementById("rewardsConsent").checked;
 
       // 2. 基础字段检查
       if (!name || !phone || !date || !time || !confirmChecked) {
@@ -789,6 +794,7 @@
       msg += `*Total Amount: RM${totalAmount}*\n\n`;
 
       msg += `*Sweet Circle & Updates:*\n`;
+      msg += `• Join Sweet Circle (purchase/stamp tracking): ${rewardsConsent ? "Yes" : "No"}\n`;
       msg += `• Agree to occasional WhatsApp updates: ${marketingConsent ? "Yes" : "No"}\n\n`;
       msg += `*Free Extras & Notes:*\n`;
       msg += `• Free Candle: ${candle}\n`;
