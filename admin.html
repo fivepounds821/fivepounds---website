@@ -172,6 +172,7 @@
         '</select><button data-save="' + escapeHtml(o.id) + '">Save</button>' +
         (!o.paid ? '<button class="secondary" data-paid="' + escapeHtml(o.id) + '">Mark paid</button>' : '') +
         (canRedeem ? '<button class="secondary" data-redeem="' + escapeHtml(o.id) + '">Use 5 stamps</button>' : '') +
+        (o.status === "cancelled" ? '<button style="background:#a33f35" data-delete="' + escapeHtml(o.id) + '">Delete order</button>' : '') +
         '<div class="small muted">Balance: ' + stamps + ' stamps</div></div></td></tr>';
     }).join("");
   }
@@ -248,7 +249,7 @@
   $("ordersBody").addEventListener("click", async (event) => {
     const button = event.target.closest("button");
     if (!button) return;
-    const id = button.dataset.save || button.dataset.paid || button.dataset.redeem;
+    const id = button.dataset.save || button.dataset.paid || button.dataset.redeem || button.dataset.delete;
     if (!id) return;
     button.disabled = true;
     try {
@@ -264,6 +265,10 @@
         if (!confirm("Redeem 5 stamps and apply RM5 off this RM40+ order?")) return;
         await adminRequest({ action: "redeem_reward", orderId: id });
         await refreshAfterAction("RM5 Sweet Circle reward applied.");
+      } else if (button.dataset.delete) {
+        if (!confirm("Permanently delete this cancelled, unpaid order? The customer profile and other orders will be kept. This cannot be undone.")) return;
+        await adminRequest({ action: "delete_cancelled_order", id });
+        await refreshAfterAction("Cancelled order deleted. Customer profile and other orders were kept.");
       }
     } catch (error) {
       alert(error.message);
