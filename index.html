@@ -208,6 +208,22 @@
         </div>
       </div>
 
+      <div class="menu-category" style="margin-top:20px">
+        <div class="category-head"><h3>Limited flavours</h3><p>Small-batch specials · subject to availability</p></div>
+        <div class="product-grid two">
+          <article class="product-card">
+            <div class="limited-visual limited-matcha" aria-label="Matcha Strawberry limited flavour artwork"><span class="pill pill-green">LIMITED</span><strong>Matcha<br>Strawberry</strong><small>SEASONAL SPECIAL</small></div>
+            <div class="product-info"><div><span class="pill pill-green">LIMITED</span><h4>Matcha Strawberry</h4><p>Matcha and strawberry in a special seasonal combination.</p></div><div class="price-stack"><strong>5" · RM85</strong></div></div>
+            <button type="button" class="add-product" data-add='{"product":"Matcha Strawberry"}'>Add to order +</button>
+          </article>
+          <article class="product-card">
+            <div class="limited-visual limited-choco" aria-label="Choco Matcha limited flavour artwork"><span class="pill pill-tan">LIMITED</span><strong>Choco<br>Matcha</strong><small>SEASONAL SPECIAL</small></div>
+            <div class="product-info"><div><span class="pill pill-tan">LIMITED</span><h4>Choco Matcha</h4><p>A chocolate and matcha special for a richer dessert moment.</p></div><div class="price-stack"><strong>5" · RM80</strong></div></div>
+            <button type="button" class="add-product" data-add='{"product":"Choco Matcha"}'>Add to order +</button>
+          </article>
+        </div>
+      </div>
+    </section>
 
     <section id="rewards" class="rewards-section section section-pad">
       <div class="rewards-copy">
@@ -380,6 +396,8 @@
  <script>
     // 已更新为最新接收订单的电话号码
     const WHATSAPP_NUMBER = "601110859232";
+    const SUPABASE_URL = "https://tofzarhxrrbpfjcmmpsr.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_PVRVBuaTW3v-sy3ZbjoEXg_xp3TynQ5";
 
     const products = [
       { name: "Signature", category: "Basque Burnt Cheesecake", options: [{ label: "4-inch", price: 20 }, { label: "5-inch", price: 52 }] },
@@ -387,6 +405,8 @@
       { name: "Premium Earl Grey", category: "Basque Burnt Cheesecake", options: [{ label: "4-inch", price: 25 }, { label: "5-inch", price: 68 }] },
       { name: "Signature Tiramisu", category: "Tiramisu", options: [{ label: "Boxed", price: 18 }, { label: "5-inch", price: 52 }] },
       { name: "Pistamisu", category: "Tiramisu", options: [{ label: "Boxed", price: 25 }, { label: "5-inch", price: 60 }] },
+      { name: "Matcha Strawberry", category: "Limited Flavours", options: [{ label: "5-inch", price: 85 }] },
+      { name: "Choco Matcha", category: "Limited Flavours", options: [{ label: "5-inch", price: 80 }] }
     ];
 
     const timeSlots = {
@@ -659,7 +679,7 @@
     showQuickReorderIfAvailable();
 
     // 提交订单跳转 WhatsApp
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
       formMessage.textContent = "";
 
@@ -758,8 +778,42 @@
         // Storage is optional; continue with WhatsApp even when unavailable.
       }
 
+      // Save the order securely before preparing the WhatsApp hand-off.
+      // Only the publishable key is used in the browser; the database secret stays in the Edge Function.
+      const submitBtn = document.getElementById("submitBtn");
+      const whatsappWindow = window.open("about:blank", "_blank");
+      let savedOrderNumber = "";
+      let saveError = "";
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Saving order…";
+      try {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/create-order`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": SUPABASE_PUBLISHABLE_KEY
+          },
+          body: JSON.stringify({
+            name, phone, date, method, collectionPoint: colPoint, time, address, notes,
+            candle: candle === "Yes",
+            birthdayCakeTopper: birthdayCakeTopper === "Yes",
+            rewardsConsent, marketingConsent,
+            items: validItems.map(item => ({ prod: item.prod, size: item.size, qty: item.qty }))
+          })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.ok) throw new Error(result.error || "The order could not be saved.");
+        savedOrderNumber = result.orderNumber || "";
+      } catch (error) {
+        saveError = error && error.message ? error.message : "The order could not be saved.";
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Submit order request <span>↗</span>';
+      }
+
       // 5. 组合 WhatsApp 消息并跳转
       let msg = `*New Order Request — Fivepounds_*\n\n`;
+      if (savedOrderNumber) msg += `*Order Reference: ${savedOrderNumber}*\\n\\n`;
       msg += `*Customer Details:*\n`;
       msg += `• Name: ${name}\n`;
       msg += `• Contact: ${phone}\n`;
@@ -795,10 +849,20 @@
       const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
 
       whatsappLink.href = waUrl;
+      const successText = document.getElementById("successText");
+      if (savedOrderNumber) {
+        successText.textContent = `Your order request has been saved as ${savedOrderNumber}. Continue to WhatsApp to confirm availability.`;
+        formMessage.className = "form-message success";
+        formMessage.textContent = `Order saved: ${savedOrderNumber}. Please continue to WhatsApp.`;
+      } else {
+        successText.textContent = "Your WhatsApp message is ready. The online order record could not be saved, so please send this message and we will record it manually.";
+        formMessage.className = "form-message error";
+        formMessage.textContent = `Online saving failed: ${saveError} Please continue to WhatsApp so your request is not lost.`;
+      }
       successPanel.classList.add("show");
       successPanel.scrollIntoView({ behavior: "smooth" });
 
-      window.open(waUrl, "_blank");
+      if (whatsappWindow) whatsappWindow.location.href = waUrl;
     });
   </script>
 </body>
