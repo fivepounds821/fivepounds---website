@@ -200,12 +200,12 @@
     $("loginBtn").disabled = true;
     showMessage($("loginMessage"), "Sending secure login link…");
     try {
-      const response = await authFetch("/auth/v1/otp", {
+      const redirectTo = location.origin + location.pathname;
+      const response = await authFetch("/auth/v1/otp?redirect_to=" + encodeURIComponent(redirectTo), {
         method: "POST",
         body: JSON.stringify({
           email,
-          create_user: false,
-          email_redirect_to: location.origin + location.pathname
+          create_user: true
         })
       });
       if (!response.ok) {
