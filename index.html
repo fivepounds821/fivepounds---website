@@ -100,13 +100,14 @@
   
     /* Mobile-first refinement: shorter browsing, clearer actions, no horizontal nav strip */
     @media(max-width:1000px){
-      .mobile-nav{display:none}
       .header-inner{grid-template-columns:1fr auto;gap:12px}
       .nav-order{display:none}
     }
     .mobile-action-bar{display:none}
     @media(max-width:700px){
       html{scroll-padding-top:76px}
+      .mobile-nav{display:none}
+      body{padding-bottom:72px}
       .site-header{background:rgba(246,239,223,.97)}
       .header-inner{min-height:66px;padding:11px 18px}
       .brand-name{font-size:23px}
