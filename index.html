@@ -97,6 +97,122 @@
         font-size: 16px !important;
       }
     }
+  
+    /* Mobile-first refinement: shorter browsing, clearer actions, no horizontal nav strip */
+    @media(max-width:1000px){
+      .mobile-nav{display:none}
+      .header-inner{grid-template-columns:1fr auto;gap:12px}
+      .nav-order{display:none}
+    }
+    .mobile-action-bar{display:none}
+    @media(max-width:700px){
+      html{scroll-padding-top:76px}
+      .site-header{background:rgba(246,239,223,.97)}
+      .header-inner{min-height:66px;padding:11px 18px}
+      .brand-name{font-size:23px}
+      .brand-tag{font-size:8px}
+      .section-pad{padding:46px 18px}
+      .hero{gap:8px;padding-top:36px;padding-bottom:28px}
+      .eyebrow,.section-kicker{font-size:10px;letter-spacing:.12em;margin-bottom:10px}
+      .hero h1{font-size:clamp(42px,12vw,54px);line-height:.99}
+      .hero-text{font-size:14px;line-height:1.5;margin:15px 0 18px;max-width:34ch}
+      .hero-actions{gap:15px}
+      .btn{min-height:45px;padding:0 18px;font-size:13px}
+      .hero-art{min-height:280px;margin-top:8px}
+      .art-circle-one{width:220px;height:220px;right:9%;top:12px}
+      .art-circle-two{width:115px;height:115px;left:4%;bottom:6px}
+      .hero-card{width:158px;padding:9px}
+      .card-a{right:8%;top:7px}
+      .card-b{left:7%;bottom:7px;width:148px}
+      .card-note{font-size:15px;padding-top:8px}
+      .card-note small{font-size:8px}
+      .hero-stamp{font-size:7px}
+      h2{font-size:clamp(35px,9vw,44px);line-height:1.04}
+      .details-intro{margin-bottom:18px}
+      .detail-grid{grid-template-columns:1fr 1fr;margin-top:20px}
+      .detail-card{min-height:0;padding:15px 13px}
+      .detail-no{width:23px;height:23px;font-size:9px;margin-bottom:12px}
+      .detail-card h3{font-size:14px;margin-bottom:6px}
+      .detail-card p{font-size:12px;line-height:1.45}
+      .section-heading{padding-bottom:20px;gap:10px}
+      .menu-note{font-size:9px;line-height:1.5}
+      .menu-category{padding-top:26px}
+      .category-head{gap:5px;margin-bottom:13px}
+      .category-head h3{font-size:25px}
+      .category-head p{font-size:11px}
+      .product-grid,.product-grid.two{
+        display:flex;overflow-x:auto;gap:12px;padding:2px 18px 13px;
+        margin:0 -18px;scroll-snap-type:x mandatory;scrollbar-width:none;
+        -webkit-overflow-scrolling:touch;
+      }
+      .product-grid::-webkit-scrollbar,.product-grid.two::-webkit-scrollbar{display:none}
+      .product-card{flex:0 0 min(78vw,310px);scroll-snap-align:start}
+      .product-image{aspect-ratio:1.22/1}
+      .product-info{padding:13px 13px 8px;gap:8px}
+      .product-info h4{font-size:19px;margin-top:7px}
+      .product-info p{font-size:11px;line-height:1.4}
+      .price-stack{font-size:11px}
+      .pill{font-size:8px;padding:4px 7px}
+      .add-product{width:calc(100% - 26px);margin:5px 13px 13px;min-height:42px;font-size:12px}
+      .collection-section{display:block}
+      .collection-main{padding:46px 18px 20px}
+      .collection-main .muted{font-size:13px;margin:10px 0}
+      .location-list{grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 0}
+      .location-item{padding:10px}
+      .location-item strong{font-size:11px;line-height:1.35}
+      .location-item span{font-size:10px}
+      .collection-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:0 18px 40px}
+      .collection-card{min-height:210px;padding:15px;gap:18px}
+      .collection-card h3{font-size:23px}
+      .collection-icon{font-size:23px}
+      .collection-card p{font-size:11px;line-height:1.5;margin-bottom:10px}
+      .collection-time{font-size:13px}
+      .collection-card .text-link{font-size:11px}
+      .rewards-section{gap:20px}
+      .rewards-copy .muted{font-size:13px;margin:12px 0}
+      .rewards-note{font-size:10px;margin-top:10px}
+      .rewards-card{padding:20px}
+      .stamp-row{gap:6px;margin:18px 0}
+      .stamp-row span{font-size:14px}
+      .rewards-card h3{font-size:26px}
+      .rewards-card p{font-size:13px}
+      .rewards-card small{font-size:10px}
+      .order-intro{margin-bottom:22px}
+      .order-intro .muted{font-size:13px;line-height:1.5}
+      .form-section{padding:18px 15px}
+      .form-section-title{margin-bottom:14px}
+      .form-section-title h3{font-size:17px}
+      .order-line{padding:11px;gap:9px}
+      .extras-grid{gap:8px}
+      .extra-card{padding:11px 9px}
+      .extra-card strong{font-size:12px}
+      .extra-card small{font-size:10px}
+      .method-card{padding:12px}
+      .method-card strong{font-size:13px}
+      .method-card small{font-size:10px}
+      .order-summary{padding:20px}
+      .faq-heading{margin-bottom:18px}
+      .faq-list details{padding:15px 2px}
+      .faq-list summary{font-size:13px}
+      .faq-list details p{font-size:12px}
+      .site-footer{padding:25px 18px 96px;gap:16px}
+      .footer-brand{font-size:21px}
+      .footer-meta,.footer-contact{font-size:11px}
+      .mobile-action-bar{
+        position:fixed;display:flex;z-index:50;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));
+        align-items:center;gap:8px;padding:8px;background:rgba(252,248,239,.96);
+        border:1px solid rgba(32,26,22,.14);border-radius:999px;
+        box-shadow:0 8px 28px rgba(55,39,25,.18);backdrop-filter:blur(14px)
+      }
+      .mobile-action-bar a{display:flex;align-items:center;justify-content:center;min-height:43px;border-radius:999px;font-size:12px;font-weight:700}
+      .mobile-action-menu{flex:1;border:1px solid var(--line)}
+      .mobile-action-order{flex:1.4;background:var(--ink);color:#fff}
+    }
+    @media(prefers-reduced-motion:reduce){
+      html{scroll-behavior:auto}
+      *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important}
+    }
+
   </style>
 </head>
 <body id="top">
@@ -122,6 +238,11 @@
       <a href="#order">Order</a>
     </nav>
   </header>
+
+  <nav class="mobile-action-bar" aria-label="Quick actions">
+    <a class="mobile-action-menu" href="#menu">View menu</a>
+    <a class="mobile-action-order" href="#order">Order now ↗</a>
+  </nav>
 
   <main>
     <section class="hero section section-pad" id="home">
@@ -214,7 +335,7 @@
         <h2>A little sweetness.<br><em>A little reward.</em></h2>
         <p class="muted">We love seeing you come back. Join our Sweet Circle and collect one stamp every time you complete an order.</p>
         <a class="btn btn-dark" href="#order">Join the Sweet Circle <span style="margin-left:8px">↗</span></a>
-        <p class="rewards-note">No account or password needed. Choose to join at checkout; stamps are checked and recorded manually using your WhatsApp number for now.</p>
+        <p class="rewards-note">No account or password needed. Choose to join at checkout; stamps are automatically recorded after eligible completed orders. Message us on WhatsApp to check your balance.</p>
       </div>
       <div class="rewards-card">
         <p class="section-kicker">YOUR LITTLE REWARD JOURNEY</p>
@@ -223,7 +344,7 @@
         </div>
         <h3>Collect 5 stamps</h3>
         <p>Enjoy <strong>RM5 OFF</strong> your next order of RM40 or more.</p>
-        <small>One stamp is awarded for each completed paid order. Stamps are not issued for cancelled or unpaid requests. Ask us to check your balance on WhatsApp.</small>
+        <small>One stamp is awarded for each completed paid order. Stamps are not issued for cancelled or unpaid requests. Message us on WhatsApp to check your stamp balance.</small>
       </div>
     </section>
 
