@@ -45,6 +45,7 @@
         <button class="active" data-tab="business" type="button">Business Dashboard</button>
         <button data-tab="orders" type="button">Orders</button>
         <button data-tab="customers" type="button">Customers & stamps</button>
+        <button data-tab="finance" type="button">Finance & Expenses</button>
       </div>
       <section id="businessTab">
         <div class="stats">
@@ -120,6 +121,42 @@
         </section>
         <div id="customersGrid" class="customer-grid"></div>
       </section>
+
+      <section id="financeTab" class="panel hidden">
+        <div class="toolbar">
+          <div><strong>Finance & Expenses</strong><div class="hint">Track business spending and compare it with completed, paid sales.</div></div>
+          <div class="actions"><input id="financeMonth" type="month" aria-label="Finance month" style="max-width:180px"></div>
+        </div>
+        <div class="stats" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin:14px 0">
+          <div class="stat"><small>Completed & paid revenue</small><strong id="financeRevenue">RM0.00</strong></div>
+          <div class="stat"><small>Recorded expenses</small><strong id="financeExpenses">RM0.00</strong></div>
+          <div class="stat"><small>Revenue less recorded expenses</small><strong id="financeBalance">RM0.00</strong></div>
+        </div>
+        <div class="dashboard-note" style="margin:0 0 18px">This is a cash-tracking overview, not net profit. Ingredient usage, unsold inventory, unpaid bills, owner drawings and other costs may not yet be recorded.</div>
+        <section class="panel" style="background:#faf7f3;margin-bottom:18px">
+          <div class="toolbar"><div><strong id="expenseFormTitle">Add an expense</strong><div class="hint">Record each business expense in RM.</div></div><button id="cancelExpenseEdit" type="button" class="secondary hidden">Cancel edit</button></div>
+          <form id="expenseForm">
+            <div class="customer-grid">
+              <div><label for="expenseDate">Date</label><input id="expenseDate" type="date" required></div>
+              <div><label for="expenseCategory">Category</label><select id="expenseCategory" required>
+                <option>Ingredients & Materials</option><option>Packaging</option><option>Delivery & Transport</option><option>Marketing & Promotion</option><option>Equipment & Tools</option><option>Utilities & Bills</option><option>Other</option>
+              </select></div>
+              <div><label for="expenseAmount">Amount (RM)</label><input id="expenseAmount" type="number" min="0.01" max="1000000" step="0.01" required placeholder="0.00"></div>
+            </div>
+            <div class="customer-grid">
+              <div><label for="expenseDescription">Description</label><input id="expenseDescription" maxlength="240" required placeholder="e.g. Butter, flour and eggs"></div>
+              <div><label for="expenseVendor">Store / Vendor (optional)</label><input id="expenseVendor" maxlength="120" placeholder="e.g. Lotus's"></div>
+              <div><label for="expensePayment">Payment method</label><select id="expensePayment"><option>Cash</option><option>Bank Transfer</option><option>E-wallet</option><option>Card</option><option>Other</option></select></div>
+            </div>
+            <label for="expenseNotes">Notes (optional)</label><input id="expenseNotes" maxlength="1000" placeholder="Any details for your own records">
+            <div class="actions" style="margin-top:14px"><button id="saveExpenseBtn" type="submit">Save expense</button></div>
+            <div id="expenseMessage" class="message" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+        <div class="toolbar"><div><strong>Expense records</strong><div class="hint">Showing records for the selected month.</div></div><strong id="expenseRecordCount" class="small muted">0 records</strong></div>
+        <div class="table-wrap"><table style="min-width:760px"><thead><tr><th>Date</th><th>Category / Description</th><th>Vendor</th><th>Payment</th><th>Amount</th><th>Actions</th></tr></thead><tbody id="expensesBody"><tr><td colspan="6" class="empty">No expenses recorded for this month.</td></tr></tbody></table></div>
+      </section>
+
       <p class="foot" id="adminIdentity"></p>
     </section>
   </main>
@@ -187,6 +224,7 @@
       renderBusinessInsights();
       renderOrders();
       renderCustomers();
+      renderFinance();
     } catch (error) {
       clearSession();
       $("dashboard").classList.add("hidden");
@@ -537,7 +575,120 @@
     $("businessTab").classList.toggle("hidden", button.dataset.tab !== "business");
     $("ordersTab").classList.toggle("hidden", button.dataset.tab !== "orders");
     $("customersTab").classList.toggle("hidden", button.dataset.tab !== "customers");
+    $("financeTab").classList.toggle("hidden", button.dataset.tab !== "finance");
   }));
+
+  // Finance & Expenses: all writes go through the authenticated admin API.
+  let editingExpenseId = null;
+  function malaysiaDateString() {
+    const parts = new Intl.DateTimeFormat("en-CA", {timeZone:"Asia/Kuala_Lumpur",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
+    return parts.find(p=>p.type==="year").value+"-"+parts.find(p=>p.type==="month").value+"-"+parts.find(p=>p.type==="day").value;
+  }
+  function selectedFinanceMonth() {
+    return $("financeMonth").value || malaysiaDateString().slice(0,7);
+  }
+  function renderFinance() {
+    const month = selectedFinanceMonth();
+    const expenses = (dashboardData.expenses || []).filter(e => String(e.expense_date || "").slice(0,7) === month);
+    const revenue = (dashboardData.orders || []).filter(o =>
+      o.status === "completed" && o.paid && String(o.paid_at || "").slice(0,7) === month
+    ).reduce((sum,o)=>sum+Number(o.amount_due||0),0);
+    const spent = expenses.reduce((sum,e)=>sum+Number(e.amount||0),0);
+    $("financeRevenue").textContent = money(revenue);
+    $("financeExpenses").textContent = money(spent);
+    $("financeBalance").textContent = money(revenue-spent);
+    $("expenseRecordCount").textContent = expenses.length + (expenses.length===1 ? " record" : " records");
+    if (!expenses.length) {
+      $("expensesBody").innerHTML = '<tr><td colspan="6" class="empty">No expenses recorded for this month.</td></tr>';
+      return;
+    }
+    $("expensesBody").innerHTML = expenses.map(e =>
+      '<tr><td>'+escapeHtml(e.expense_date)+'</td>'+
+      '<td><strong>'+escapeHtml(e.category)+'</strong><div class="small muted">'+escapeHtml(e.description)+'</div>'+(e.notes?'<div class="small muted">'+escapeHtml(e.notes)+'</div>':'')+'</td>'+
+      '<td>'+escapeHtml(e.vendor||"—")+'</td><td>'+escapeHtml(e.payment_method)+'</td>'+
+      '<td><strong>'+money(e.amount)+'</strong></td>'+
+      '<td><div class="actions"><button type="button" class="secondary" data-expense-edit="'+escapeHtml(e.id)+'">Edit</button><button type="button" style="background:#a33f35" data-expense-delete="'+escapeHtml(e.id)+'">Delete</button></div></td></tr>'
+    ).join("");
+  }
+  function resetExpenseForm() {
+    editingExpenseId = null;
+    $("expenseForm").reset();
+    $("expenseDate").value = malaysiaDateString();
+    $("expenseFormTitle").textContent = "Add an expense";
+    $("saveExpenseBtn").textContent = "Save expense";
+    $("cancelExpenseEdit").classList.add("hidden");
+    showMessage($("expenseMessage"), "");
+  }
+  $("expenseDate").value = malaysiaDateString();
+  $("financeMonth").value = malaysiaDateString().slice(0,7);
+  $("financeMonth").addEventListener("change", renderFinance);
+  $("cancelExpenseEdit").addEventListener("click", resetExpenseForm);
+  $("expenseForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    const button = $("saveExpenseBtn");
+    button.disabled = true;
+    showMessage($("expenseMessage"), "Saving expense…");
+    try {
+      const payload = {
+        action: editingExpenseId ? "update_expense" : "create_expense",
+        id: editingExpenseId || undefined,
+        expenseDate: $("expenseDate").value,
+        category: $("expenseCategory").value,
+        description: $("expenseDescription").value,
+        vendor: $("expenseVendor").value,
+        amount: $("expenseAmount").value,
+        paymentMethod: $("expensePayment").value,
+        notes: $("expenseNotes").value
+      };
+      await adminRequest(payload);
+      const data = await adminRequest({action:"dashboard"});
+      dashboardData = data;
+      renderStats(); renderBusinessInsights(); renderOrders(); renderCustomers(); renderFinance();
+      resetExpenseForm();
+      showMessage($("expenseMessage"), "Expense saved successfully.", "success");
+    } catch (error) {
+      showMessage($("expenseMessage"), error.message, "error");
+    } finally { button.disabled = false; }
+  });
+  $("expensesBody").addEventListener("click", async event => {
+    const button = event.target.closest("button");
+    if (!button) return;
+    const editId = button.dataset.expenseEdit;
+    const deleteId = button.dataset.expenseDelete;
+    if (editId) {
+      const expense = (dashboardData.expenses || []).find(e=>e.id===editId);
+      if (!expense) return;
+      editingExpenseId = editId;
+      $("expenseDate").value = expense.expense_date;
+      $("expenseCategory").value = expense.category;
+      $("expenseDescription").value = expense.description;
+      $("expenseVendor").value = expense.vendor || "";
+      $("expenseAmount").value = Number(expense.amount).toFixed(2);
+      $("expensePayment").value = expense.payment_method;
+      $("expenseNotes").value = expense.notes || "";
+      $("expenseFormTitle").textContent = "Edit expense";
+      $("saveExpenseBtn").textContent = "Update expense";
+      $("cancelExpenseEdit").classList.remove("hidden");
+      showMessage($("expenseMessage"), "Editing selected expense.");
+      $("expenseFormTitle").scrollIntoView({behavior:"smooth",block:"center"});
+      return;
+    }
+    if (deleteId) {
+      const expense = (dashboardData.expenses || []).find(e=>e.id===deleteId);
+      if (!expense || !confirm("Permanently delete this expense record? This cannot be undone.")) return;
+      button.disabled = true;
+      try {
+        await adminRequest({action:"delete_expense",id:deleteId});
+        const data = await adminRequest({action:"dashboard"});
+        dashboardData = data;
+        renderStats(); renderBusinessInsights(); renderOrders(); renderCustomers(); renderFinance();
+        if (editingExpenseId===deleteId) resetExpenseForm();
+      } catch(error) {
+        alert(error.message); button.disabled=false;
+      }
+    }
+  });
+
   // Isolated Sweet Circle simulator: in-memory only; never calls adminRequest or writes to Supabase.
   let testStampBalance = 0;
   function renderSweetCircleTest() {
