@@ -165,6 +165,7 @@
           <button type="button" class="active" data-product-view="products">Products</button>
           <button type="button" data-product-view="ingredients">Ingredients</button>
           <button type="button" data-product-view="recipes">Recipes & Costing</button>
+          <button type="button" data-product-view="daily-sales">Coffee Shop Sales</button>
         </div>
         <section id="productViewProducts">
           <div class="toolbar"><div><strong>Product catalogue</strong><div class="hint">Set selling prices and keep discontinued items in the archive.</div></div></div>
@@ -207,6 +208,23 @@
             </form>
           </section>
           <div class="table-wrap"><table style="min-width:760px"><thead><tr><th>Ingredient</th><th>Purchase pack</th><th>Pack price</th><th>Cost per recipe unit</th><th>Actions</th></tr></thead><tbody id="ingredientsBody"><tr><td colspan="5" class="empty">No ingredients added yet.</td></tr></tbody></table></div>
+        </section>
+        <section id="productViewDaily-sales" class="hidden">
+          <div class="toolbar"><div><strong>南洋提拉米苏 · Daily sales</strong><div class="hint">Enter the total cups sold at the coffee shop after each day. Friday–Sunday only.</div></div></div>
+          <section class="panel" style="background:#faf7f3;margin-bottom:16px">
+            <form id="dailySalesForm">
+              <div class="customer-grid">
+                <div><label for="dailySalesDate">Sales date</label><input id="dailySalesDate" type="date" required></div>
+                <div><label for="dailySalesQty">Cups sold</label><input id="dailySalesQty" type="number" min="1" max="10000" step="1" required placeholder="e.g. 12"></div>
+                <div><label>Unit price</label><input value="RM9.90 / cup" disabled></div>
+              </div>
+              <div class="dashboard-note" id="dailySalesPreview">Estimated sales: RM0.00</div>
+              <div class="actions" style="margin-top:12px"><button id="saveDailySalesBtn" type="submit">Save daily sales</button></div>
+              <div id="dailySalesMessage" class="message" role="status" aria-live="polite"></div>
+            </form>
+          </section>
+          <div class="toolbar"><div><strong>Daily sales records</strong><div class="hint">One record per date. Saving the same date again updates its quantity.</div></div><strong id="dailySalesCount" class="small muted">0 days</strong></div>
+          <div class="table-wrap"><table style="min-width:620px"><thead><tr><th>Date</th><th>Product</th><th>Cups sold</th><th>Unit price</th><th>Sales</th><th>Actions</th></tr></thead><tbody id="dailySalesBody"><tr><td colspan="6" class="empty">No daily sales recorded yet.</td></tr></tbody></table></div>
         </section>
         <section id="productViewRecipes" class="hidden">
           <div class="toolbar"><div><strong>Recipe builder</strong><div class="hint">Create a recipe for one sellable product variant.</div></div></div>
@@ -294,6 +312,7 @@
       renderProducts();
       renderIngredients();
       renderRecipeEditor();
+      renderDailySales();
     } catch (error) {
       clearSession();
       $("dashboard").classList.add("hidden");
@@ -716,7 +735,7 @@
   }
   function switchProductView(view) {
     document.querySelectorAll("[data-product-view]").forEach(b=>b.classList.toggle("active",b.dataset.productView===view));
-    ["products","ingredients","recipes"].forEach(v=>$("productView"+v.charAt(0).toUpperCase()+v.slice(1)).classList.toggle("hidden",v!==view));
+    ["products","ingredients","recipes","daily-sales"].forEach(v=>$("productView"+v.charAt(0).toUpperCase()+v.slice(1)).classList.toggle("hidden",v!==view));
   }
   function resetProductForm() {
     editingProductId=null; $("productForm").reset(); $("productCategory").value="Cake";
@@ -776,6 +795,42 @@
     const b=$("saveRecipeBtn");b.disabled=true;
     try{await adminRequest({action:"save_recipe",productId:currentRecipeProductId,items});const data=await adminRequest({action:"dashboard"});dashboardData=data;renderProducts();renderIngredients();renderRecipeEditor();showMessage($("recipeMessage"),"Recipe saved. Ingredient cost and estimated gross margin are updated.","success");}
     catch(err){showMessage($("recipeMessage"),err.message,"error");}finally{b.disabled=false;}
+  });
+  function renderDailySales() {
+    const rows = dashboardData.coffeeShopSales || [];
+    $("dailySalesCount").textContent = rows.length + " days";
+    $("dailySalesBody").innerHTML = rows.length ? rows.map(r =>
+      '<tr><td>'+escapeHtml(r.sales_date)+'</td><td>南洋提拉米苏</td><td>'+Number(r.quantity_sold)+'</td><td>'+money(r.unit_price)+'</td><td><strong>'+money(Number(r.quantity_sold)*Number(r.unit_price))+'</strong></td><td><button type="button" class="secondary" data-daily-sales-edit="'+escapeHtml(r.sales_date)+'">Edit</button></td></tr>'
+    ).join("") : '<tr><td colspan="6" class="empty">No daily sales recorded yet.</td></tr>';
+  }
+  function updateDailySalesPreview() {
+    const qty = Number($("dailySalesQty").value || 0);
+    $("dailySalesPreview").textContent = "Estimated sales: " + money(qty * 9.90);
+  }
+  $("dailySalesDate").value = malaysiaDateString();
+  $("dailySalesQty").addEventListener("input", updateDailySalesPreview);
+  $("dailySalesForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const date = $("dailySalesDate").value;
+    const qty = Number($("dailySalesQty").value);
+    const day = new Date(date + "T00:00:00Z").getUTCDay();
+    if (![0,5,6].includes(day)) { showMessage($("dailySalesMessage"), "南洋提拉米苏只记录星期五、六、日的咖啡店销售。", "error"); return; }
+    if (!Number.isInteger(qty) || qty < 1 || qty > 10000) { showMessage($("dailySalesMessage"), "Please enter a whole number of cups sold.", "error"); return; }
+    const b = $("saveDailySalesBtn"); b.disabled = true;
+    try {
+      await adminRequest({action:"save_coffee_shop_sale",salesDate:date,quantitySold:qty});
+      const data = await adminRequest({action:"dashboard"}); dashboardData = data; renderDailySales();
+      showMessage($("dailySalesMessage"), "Daily sales saved. " + qty + " cups · " + money(qty * 9.90), "success");
+      $("dailySalesQty").value = ""; updateDailySalesPreview();
+    } catch(err) { showMessage($("dailySalesMessage"), err.message, "error"); }
+    finally { b.disabled = false; }
+  });
+  $("dailySalesBody").addEventListener("click", e => {
+    const b = e.target.closest("[data-daily-sales-edit]"); if (!b) return;
+    const row = (dashboardData.coffeeShopSales || []).find(r => r.sales_date === b.dataset.dailySalesEdit);
+    if (!row) return;
+    $("dailySalesDate").value = row.sales_date; $("dailySalesQty").value = row.quantity_sold; updateDailySalesPreview();
+    $("dailySalesForm").scrollIntoView({behavior:"smooth",block:"center"});
   });
   document.querySelectorAll("[data-product-view]").forEach(b=>b.addEventListener("click",()=>switchProductView(b.dataset.productView)));
   syncIngredientPackUnits();

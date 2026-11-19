@@ -71,7 +71,7 @@ Deno.serve(async (req: Request) => {
     const action = String(body.action || "");
 
     if (action === "dashboard") {
-      const [orders, customers, transactions, expenses, products, ingredients, recipeItems] = await Promise.all([
+      const [orders, customers, transactions, expenses, products, ingredients, recipeItems, coffeeShopSales] = await Promise.all([
         db("orders?select=id,order_number,customer_id,customer_name,customer_phone,preferred_date,preferred_time,fulfillment_method,collection_point,delivery_address,notes,items,item_count,subtotal,discount,amount_due,status,paid,paid_at,rewards_opt_in_at_order,marketing_opt_in_at_order,created_at&order=created_at.desc&limit=500"),
         db("customer_summary?select=id,display_name,phone,rewards_opt_in,marketing_opt_in,created_at,completed_paid_orders,lifetime_spend,first_order_at,last_order_at,stamps_balance&order=last_order_at.desc.nullslast&limit=1000"),
         db("loyalty_transactions?select=id,customer_id,order_id,transaction_type,stamps_delta,description,created_at&order=created_at.desc&limit=300"),
@@ -79,8 +79,9 @@ Deno.serve(async (req: Request) => {
         db("products?select=id,name,variant,category,description,selling_price,active,created_at,updated_at&order=name.asc,variant.asc&limit=1000"),
         db("ingredients?select=id,name,category,base_unit,purchase_pack_quantity,purchase_pack_unit,purchase_price,normalized_pack_quantity,unit_cost_per_base_unit,active,created_at,updated_at&order=name.asc&limit=1000"),
         db("product_recipe_items?select=product_id,ingredient_id,quantity,ingredient:ingredients(id,name,base_unit,unit_cost_per_base_unit,active)&order=created_at.asc&limit=3000"),
+        db("coffee_shop_daily_sales?select=id,product_id,sales_date,quantity_sold,unit_price,channel,created_at,updated_at&order=sales_date.desc&limit=1000"),
       ]);
-      return respond({ ok: true, orders, customers, transactions, expenses, products, ingredients, recipeItems, adminEmail: email }, 200, origin);
+      return respond({ ok: true, orders, customers, transactions, expenses, products, ingredients, recipeItems, coffeeShopSales, adminEmail: email }, 200, origin);
     }
 
 
@@ -381,6 +382,27 @@ Deno.serve(async (req: Request) => {
         body: JSON.stringify({ p_order_id: id }),
       }));
       return respond({ ok: true, result }, 200, origin);
+    }
+
+    if (action === "save_coffee_shop_sale") {
+      const salesDate = String(body.salesDate || "");
+      const quantitySold = Number(body.quantitySold);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(salesDate) || new Date(salesDate + "T00:00:00Z").toISOString().slice(0,10) !== salesDate) {
+        return respond({ error: "Please choose a valid sales date." }, 400, origin);
+      }
+      const day = new Date(salesDate + "T00:00:00Z").getUTCDay();
+      if (![0,5,6].includes(day)) return respond({ error: "南洋提拉米苏只记录星期五、六、日的咖啡店销售。" }, 400, origin);
+      if (!Number.isInteger(quantitySold) || quantitySold < 1 || quantitySold > 10000) return respond({ error: "Enter a whole number of cups sold (1–10,000)." }, 400, origin);
+      const products = await db("products?select=id,name,variant,selling_price&name=eq." + encodeURIComponent("南洋提拉米苏") + "&variant=eq.Cup&active=eq.true&limit=1");
+      if (!Array.isArray(products) || products.length !== 1) return respond({ error: "Please add an active product named 南洋提拉米苏 with variant Cup and selling price RM9.90 in Products first." }, 409, origin);
+      if (Number(products[0].selling_price) !== 9.90) return respond({ error: "The 南洋提拉米苏 Cup product must have a selling price of RM9.90 before recording sales." }, 409, origin);
+      const rows = await db("coffee_shop_daily_sales?on_conflict=product_id,sales_date,channel&select=id,product_id,sales_date,quantity_sold,unit_price,channel,created_at,updated_at", {
+        method: "POST",
+        headers: { "Prefer": "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({ product_id: products[0].id, sales_date: salesDate, quantity_sold: quantitySold, unit_price: 9.90, channel: "coffee_shop", updated_at: new Date().toISOString() }),
+      });
+      if (!Array.isArray(rows) || rows.length !== 1) return respond({ error: "Daily sales could not be saved." }, 409, origin);
+      return respond({ ok: true, sale: rows[0] }, 200, origin);
     }
 
     return respond({ error: "Unknown action." }, 400, origin);
