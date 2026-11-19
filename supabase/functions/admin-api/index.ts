@@ -188,6 +188,14 @@ Deno.serve(async (req: Request) => {
       if (!Object.prototype.hasOwnProperty.call(compatible, baseUnit) || !compatible[baseUnit].includes(packUnit)) return respond({ error: "Purchase pack unit must match the ingredient base unit." }, 400, origin);
       if (!Number.isFinite(packQty) || packQty <= 0 || packQty > 100000000 || Math.round(packQty * 1000) !== packQty * 1000) return respond({ error: "Enter a valid package quantity (up to 3 decimal places)." }, 400, origin);
       if (!Number.isFinite(purchasePrice) || purchasePrice <= 0 || purchasePrice > 100000 || Math.round(purchasePrice * 100) !== purchasePrice * 100) return respond({ error: "Enter a valid purchase price in RM." }, 400, origin);
+      if (updating) {
+        const existing = await db("ingredients?id=eq." + encodeURIComponent(id) + "&select=id,base_unit&limit=1");
+        if (!Array.isArray(existing) || existing.length !== 1) return respond({ error: "Ingredient not found." }, 404, origin);
+        if (existing[0].base_unit !== baseUnit) {
+          const usage = await db("product_recipe_items?ingredient_id=eq." + encodeURIComponent(id) + "&select=product_id&limit=1");
+          if (Array.isArray(usage) && usage.length > 0) return respond({ error: "This ingredient is already used in a recipe. Its base unit cannot be changed; keep the current unit or archive it and create a new ingredient." }, 409, origin);
+        }
+      }
       const payload = { name, category: category || "Other", base_unit: baseUnit, purchase_pack_quantity: packQty, purchase_pack_unit: packUnit, purchase_price: purchasePrice, updated_at: new Date().toISOString() };
       const path = updating ? "ingredients?id=eq." + encodeURIComponent(id) + "&select=id,name,category,base_unit,purchase_pack_quantity,purchase_pack_unit,purchase_price,normalized_pack_quantity,unit_cost_per_base_unit,active,created_at,updated_at" : "ingredients?select=id,name,category,base_unit,purchase_pack_quantity,purchase_pack_unit,purchase_price,normalized_pack_quantity,unit_cost_per_base_unit,active,created_at,updated_at";
       const rows = await db(path, { method: updating ? "PATCH" : "POST", headers: { "Prefer": "return=representation" }, body: JSON.stringify(payload) });
