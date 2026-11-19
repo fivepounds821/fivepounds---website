@@ -71,8 +71,9 @@ Deno.serve(async (req: Request) => {
     const action = String(body.action || "");
 
     if (action === "dashboard") {
-      const [orders, customers, transactions, expenses, products, ingredients, recipeItems, coffeeShopSales] = await Promise.all([
+      const [orders, historicalOrders, customers, transactions, expenses, products, ingredients, recipeItems, coffeeShopSales] = await Promise.all([
         db("orders?select=id,order_number,customer_id,customer_name,customer_phone,preferred_date,preferred_time,fulfillment_method,collection_point,delivery_address,notes,items,item_count,subtotal,discount,amount_due,status,paid,paid_at,rewards_opt_in_at_order,marketing_opt_in_at_order,created_at&order=created_at.desc&limit=500"),
+        db("historical_orders?select=id,order_date,customer_name,instagram,contact_no,items,order_time,pickup_delivery,payment_method,total,cost,profit,paid,status,remarks,source_sheet,source_row,order_type&order=order_date.desc,source_row.desc&limit=1000"),
         db("customer_summary?select=id,display_name,phone,rewards_opt_in,marketing_opt_in,created_at,completed_paid_orders,lifetime_spend,first_order_at,last_order_at,stamps_balance&order=last_order_at.desc.nullslast&limit=1000"),
         db("loyalty_transactions?select=id,customer_id,order_id,transaction_type,stamps_delta,description,created_at&order=created_at.desc&limit=300"),
         db("finance_expenses?select=id,expense_date,category,description,vendor,amount,payment_method,notes,created_at,updated_at&order=expense_date.desc,created_at.desc&limit=1000"),
@@ -81,7 +82,7 @@ Deno.serve(async (req: Request) => {
         db("product_recipe_items?select=product_id,ingredient_id,quantity,ingredient:ingredients(id,name,base_unit,unit_cost_per_base_unit,active)&order=created_at.asc&limit=3000"),
         db("coffee_shop_daily_sales?select=id,product_id,sales_date,quantity_sold,unit_price,channel,created_at,updated_at&order=sales_date.desc&limit=1000"),
       ]);
-      return respond({ ok: true, orders, customers, transactions, expenses, products, ingredients, recipeItems, coffeeShopSales, adminEmail: email }, 200, origin);
+      return respond({ ok: true, orders, historicalOrders, customers, transactions, expenses, products, ingredients, recipeItems, coffeeShopSales, adminEmail: email }, 200, origin);
     }
 
 
