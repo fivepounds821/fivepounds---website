@@ -63,7 +63,7 @@
             <div class="customer-grid">
               <div><label for="customName">Customer name</label><input id="customName" maxlength="80" required></div>
               <div><label for="customPhone">WhatsApp number</label><input id="customPhone" type="tel" placeholder="01X-XXXXXXX" required></div>
-              <div><label for="customDate">Collection / delivery date</label><input id="customDate" type="date" min="2026-11-21" required></div>
+              <div><label for="customDate">Collection / delivery date</label><input id="customDate" type="date" required></div>
             </div>
             <div class="customer-grid">
               <div><label for="customTime">Time</label><input id="customTime" placeholder="e.g. 10:00am – 11:00am" maxlength="40" required></div>
@@ -224,6 +224,11 @@
     await loadDashboard();
     if (message) alert(message);
   }
+
+  const malaysiaTodayForCustomOrder = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit"
+  }).format(new Date());
+  $("customDate").min = malaysiaTodayForCustomOrder;
 
   $("toggleCustomOrder").addEventListener("click", () => {
     $("customOrderPanel").classList.toggle("hidden");
