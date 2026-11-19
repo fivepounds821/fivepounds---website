@@ -340,21 +340,22 @@
     ctx.font = "italic 25px Georgia, serif";
     ctx.fillText("Thank you for being part of our Sweet Circle ♡", 540, 1250);
 
-    canvas.toBlob(blob => {
-      if (!blob) {
-        alert("Could not generate the card image. Please try again.");
-        return;
-      }
-      const objectUrl = URL.createObjectURL(blob);
+    // Generate and trigger the download synchronously within the user's click.
+    // Safari may block downloads triggered later from the asynchronous toBlob callback.
+    try {
+      const dataUrl = canvas.toDataURL("image/png");
       const link = document.createElement("a");
       const safeName = customerName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "member";
-      link.href = objectUrl;
+      link.href = dataUrl;
       link.download = "fivepounds-sweet-circle-" + safeName + ".png";
+      link.style.display = "none";
       document.body.appendChild(link);
       link.click();
       link.remove();
-      setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
-    }, "image/png");
+    } catch (error) {
+      console.error("Sweet Circle card download failed:", error);
+      alert("The stamp card could not be downloaded. Please try again or use Chrome.");
+    }
   }
 
   $("customersGrid").addEventListener("click", event => {
