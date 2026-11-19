@@ -71,14 +71,75 @@ Deno.serve(async (req: Request) => {
     const action = String(body.action || "");
 
     if (action === "dashboard") {
-      const [orders, customers, transactions] = await Promise.all([
+      const [orders, customers, transactions, expenses] = await Promise.all([
         db("orders?select=id,order_number,customer_id,customer_name,customer_phone,preferred_date,preferred_time,fulfillment_method,collection_point,delivery_address,notes,items,item_count,subtotal,discount,amount_due,status,paid,paid_at,rewards_opt_in_at_order,marketing_opt_in_at_order,created_at&order=created_at.desc&limit=500"),
         db("customer_summary?select=id,display_name,phone,rewards_opt_in,marketing_opt_in,created_at,completed_paid_orders,lifetime_spend,first_order_at,last_order_at,stamps_balance&order=last_order_at.desc.nullslast&limit=1000"),
         db("loyalty_transactions?select=id,customer_id,order_id,transaction_type,stamps_delta,description,created_at&order=created_at.desc&limit=300"),
+        db("finance_expenses?select=id,expense_date,category,description,vendor,amount,payment_method,notes,created_at,updated_at&order=expense_date.desc,created_at.desc&limit=1000"),
       ]);
-      return respond({ ok: true, orders, customers, transactions, adminEmail: email }, 200, origin);
+      return respond({ ok: true, orders, customers, transactions, expenses, adminEmail: email }, 200, origin);
     }
 
+
+
+    if (action === "create_expense" || action === "update_expense") {
+      const id = String(body.id || "");
+      if (action === "update_expense" && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+        return respond({ error: "Invalid expense ID." }, 400, origin);
+      }
+      const expenseDate = String(body.expenseDate || "");
+      const category = String(body.category || "");
+      const description = String(body.description || "").trim();
+      const vendor = String(body.vendor || "").trim();
+      const amount = Number(body.amount);
+      const paymentMethod = String(body.paymentMethod || "Other");
+      const notes = String(body.notes || "").trim();
+      const categories = ["Ingredients & Materials", "Packaging", "Delivery & Transport", "Marketing & Promotion", "Equipment & Tools", "Utilities & Bills", "Other"];
+      const paymentMethods = ["Cash", "Bank Transfer", "E-wallet", "Card", "Other"];
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(expenseDate) || Number.isNaN(Date.parse(expenseDate + "T00:00:00Z")) || new Date(expenseDate + "T00:00:00Z").toISOString().slice(0,10) !== expenseDate) {
+        return respond({ error: "Please choose a valid expense date." }, 400, origin);
+      }
+      if (!categories.includes(category)) return respond({ error: "Please choose a valid expense category." }, 400, origin);
+      if (!description || description.length > 240) return respond({ error: "Description must be between 1 and 240 characters." }, 400, origin);
+      if (vendor.length > 120 || notes.length > 1000) return respond({ error: "Vendor or notes exceed the allowed length." }, 400, origin);
+      if (!Number.isFinite(amount) || amount <= 0 || amount > 1000000 || Math.round(amount * 100) !== amount * 100) {
+        return respond({ error: "Please enter a valid expense amount in RM." }, 400, origin);
+      }
+      if (!paymentMethods.includes(paymentMethod)) return respond({ error: "Please choose a valid payment method." }, 400, origin);
+      const payload = {
+        expense_date: expenseDate,
+        category,
+        description,
+        vendor: vendor || null,
+        amount,
+        payment_method: paymentMethod,
+        notes: notes || null,
+        updated_at: new Date().toISOString(),
+      };
+      const path = action === "create_expense"
+        ? "finance_expenses?select=id,expense_date,category,description,vendor,amount,payment_method,notes,created_at,updated_at"
+        : "finance_expenses?id=eq." + encodeURIComponent(id) + "&select=id,expense_date,category,description,vendor,amount,payment_method,notes,created_at,updated_at";
+      const rows = await db(path, {
+        method: action === "create_expense" ? "POST" : "PATCH",
+        headers: { "Prefer": "return=representation" },
+        body: JSON.stringify(payload),
+      });
+      if (!Array.isArray(rows) || rows.length !== 1) return respond({ error: "Expense could not be saved." }, 409, origin);
+      return respond({ ok: true, expense: rows[0] }, action === "create_expense" ? 201 : 200, origin);
+    }
+
+    if (action === "delete_expense") {
+      const id = String(body.id || "");
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+        return respond({ error: "Invalid expense ID." }, 400, origin);
+      }
+      const rows = await db("finance_expenses?id=eq." + encodeURIComponent(id) + "&select=id", {
+        method: "DELETE",
+        headers: { "Prefer": "return=representation" },
+      });
+      if (!Array.isArray(rows) || rows.length !== 1) return respond({ error: "Expense not found or could not be deleted." }, 404, origin);
+      return respond({ ok: true, deletedExpenseId: id }, 200, origin);
+    }
 
     if (action === "create_custom_order") {
       const name = String(body.name || "").trim();
