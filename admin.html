@@ -46,6 +46,7 @@
         <button data-tab="orders" type="button">Orders</button>
         <button data-tab="customers" type="button">Customers & stamps</button>
         <button data-tab="finance" type="button">Finance & Expenses</button>
+        <button data-tab="products" type="button">Products & Recipes</button>
       </div>
       <section id="businessTab">
         <div class="stats">
@@ -157,6 +158,71 @@
         <div class="table-wrap"><table style="min-width:760px"><thead><tr><th>Date</th><th>Category / Description</th><th>Vendor</th><th>Payment</th><th>Amount</th><th>Actions</th></tr></thead><tbody id="expensesBody"><tr><td colspan="6" class="empty">No expenses recorded for this month.</td></tr></tbody></table></div>
       </section>
 
+
+      <section id="productsTab" class="panel hidden">
+        <div class="toolbar"><div><strong>Products & Recipes</strong><div class="hint">Manage your product catalogue, ingredient prices and recipe costs.</div></div></div>
+        <div class="tabs" style="margin:12px 0 18px">
+          <button type="button" class="active" data-product-view="products">Products</button>
+          <button type="button" data-product-view="ingredients">Ingredients</button>
+          <button type="button" data-product-view="recipes">Recipes & Costing</button>
+        </div>
+        <section id="productViewProducts">
+          <div class="toolbar"><div><strong>Product catalogue</strong><div class="hint">Set selling prices and keep discontinued items in the archive.</div></div></div>
+          <section class="panel" style="background:#faf7f3;margin-bottom:16px">
+            <div class="toolbar"><strong id="productFormTitle">Add a product</strong><button id="cancelProductEdit" class="secondary hidden" type="button">Cancel edit</button></div>
+            <form id="productForm">
+              <div class="customer-grid">
+                <div><label for="productName">Product name</label><input id="productName" maxlength="120" required placeholder="e.g. Chocolate Cake"></div>
+                <div><label for="productVariant">Size / Variant</label><input id="productVariant" maxlength="80" placeholder="e.g. 4-inch"></div>
+                <div><label for="productCategory">Category</label><input id="productCategory" maxlength="80" value="Cake"></div>
+              </div>
+              <div class="customer-grid">
+                <div><label for="productPrice">Selling price (RM)</label><input id="productPrice" type="number" min="0.01" max="100000" step="0.01" required placeholder="0.00"></div>
+                <div style="grid-column:span 2"><label for="productDescription">Description (optional)</label><input id="productDescription" maxlength="1000" placeholder="Product notes"></div>
+              </div>
+              <div class="actions" style="margin-top:12px"><button id="saveProductBtn" type="submit">Save product</button></div>
+              <div id="productMessage" class="message" role="status"></div>
+            </form>
+          </section>
+          <div class="table-wrap"><table style="min-width:740px"><thead><tr><th>Product</th><th>Category</th><th>Selling price</th><th>Recipe cost</th><th>Est. gross margin</th><th>Actions</th></tr></thead><tbody id="productsBody"><tr><td colspan="6" class="empty">No products added yet.</td></tr></tbody></table></div>
+        </section>
+        <section id="productViewIngredients" class="hidden">
+          <div class="toolbar"><div><strong>Ingredient list</strong><div class="hint">Record package size and price. Unit cost is calculated automatically.</div></div></div>
+          <section class="panel" style="background:#faf7f3;margin-bottom:16px">
+            <div class="toolbar"><strong id="ingredientFormTitle">Add an ingredient</strong><button id="cancelIngredientEdit" class="secondary hidden" type="button">Cancel edit</button></div>
+            <form id="ingredientForm">
+              <div class="customer-grid">
+                <div><label for="ingredientName">Ingredient name</label><input id="ingredientName" maxlength="120" required placeholder="e.g. Unsalted butter"></div>
+                <div><label for="ingredientCategory">Category</label><input id="ingredientCategory" maxlength="80" value="Dairy"></div>
+                <div><label for="ingredientBaseUnit">Recipe unit</label><select id="ingredientBaseUnit"><option value="g">Grams (g)</option><option value="ml">Millilitres (ml)</option><option value="pcs">Pieces (pcs)</option></select></div>
+              </div>
+              <div class="customer-grid">
+                <div><label for="ingredientPackQty">Pack quantity</label><input id="ingredientPackQty" type="number" min="0.001" step="0.001" required placeholder="e.g. 1"></div>
+                <div><label for="ingredientPackUnit">Pack unit</label><select id="ingredientPackUnit"><option value="kg">kg</option><option value="g">g</option><option value="L">L</option><option value="ml">ml</option><option value="pcs">pcs</option></select></div>
+                <div><label for="ingredientPurchasePrice">Purchase price (RM)</label><input id="ingredientPurchasePrice" type="number" min="0.01" max="100000" step="0.01" required placeholder="e.g. 18.90"></div>
+              </div>
+              <div class="hint" id="ingredientUnitHint">Recipe quantity will be recorded in grams (g).</div>
+              <div class="actions" style="margin-top:12px"><button id="saveIngredientBtn" type="submit">Save ingredient</button></div>
+              <div id="ingredientMessage" class="message" role="status"></div>
+            </form>
+          </section>
+          <div class="table-wrap"><table style="min-width:760px"><thead><tr><th>Ingredient</th><th>Purchase pack</th><th>Pack price</th><th>Cost per recipe unit</th><th>Actions</th></tr></thead><tbody id="ingredientsBody"><tr><td colspan="5" class="empty">No ingredients added yet.</td></tr></tbody></table></div>
+        </section>
+        <section id="productViewRecipes" class="hidden">
+          <div class="toolbar"><div><strong>Recipe builder</strong><div class="hint">Create a recipe for one sellable product variant.</div></div></div>
+          <div class="customer-grid" style="align-items:end;margin-bottom:14px">
+            <div><label for="recipeProduct">Choose product</label><select id="recipeProduct"><option value="">Select a product</option></select></div>
+            <div><div class="hint">Recipe quantities use each ingredient's base unit (g, ml or pcs).</div></div>
+            <div><div class="hint">Saving replaces the selected product's recipe lines.</div></div>
+          </div>
+          <div id="recipeLines" class="panel" style="background:#faf7f3;margin-bottom:14px"><div class="empty">Choose a product to edit its recipe.</div></div>
+          <div class="actions"><button id="addRecipeLine" type="button" class="secondary" disabled>Add ingredient</button><button id="saveRecipeBtn" type="button" disabled>Save recipe</button></div>
+          <div id="recipeCostSummary" class="dashboard-note" style="margin-top:14px">Recipe cost and estimated gross margin will appear here.</div>
+          <div id="recipeMessage" class="message" role="status"></div>
+        </section>
+        <div class="dashboard-note">Costing is an estimate based on the latest ingredient purchase prices and recipe quantities. It does not yet include labour, electricity, packaging, wastage or delivery.</div>
+      </section>
+
       <p class="foot" id="adminIdentity"></p>
     </section>
   </main>
@@ -225,6 +291,9 @@
       renderOrders();
       renderCustomers();
       renderFinance();
+      renderProducts();
+      renderIngredients();
+      renderRecipeEditor();
     } catch (error) {
       clearSession();
       $("dashboard").classList.add("hidden");
@@ -576,7 +645,140 @@
     $("ordersTab").classList.toggle("hidden", button.dataset.tab !== "orders");
     $("customersTab").classList.toggle("hidden", button.dataset.tab !== "customers");
     $("financeTab").classList.toggle("hidden", button.dataset.tab !== "finance");
+    $("productsTab").classList.toggle("hidden", button.dataset.tab !== "products");
   }));
+
+
+  // Products, ingredients and recipe costing.
+  let editingProductId = null;
+  let editingIngredientId = null;
+  function productCost(productId) {
+    return (dashboardData.recipeItems || []).filter(r=>r.product_id===productId).reduce((sum,r)=>sum+Number(r.quantity||0)*Number(r.ingredient?.unit_cost_per_base_unit||0),0);
+  }
+  function productRecipeLines(productId) {
+    return (dashboardData.recipeItems || []).filter(r=>r.product_id===productId);
+  }
+  function renderProducts() {
+    const products = dashboardData.products || [];
+    $("productsBody").innerHTML = products.length ? products.map(p=>{
+      const cost = productCost(p.id);
+      const hasRecipe = productRecipeLines(p.id).length>0;
+      const margin = Number(p.selling_price)-cost;
+      return '<tr><td><strong>'+escapeHtml(p.name)+'</strong><div class="small muted">'+escapeHtml(p.variant||"Standard")+(p.active?'':' · Archived')+'</div></td><td>'+escapeHtml(p.category||"Other")+'</td><td>'+money(p.selling_price)+'</td><td>'+(hasRecipe?money(cost):'<span class="muted">Not set</span>')+'</td><td>'+(hasRecipe?money(margin)+' <span class="small muted">('+((margin/Number(p.selling_price))*100).toFixed(1)+'%)</span>':'—')+'</td><td><div class="actions"><button type="button" class="secondary" data-product-edit="'+escapeHtml(p.id)+'">Edit</button><button type="button" class="secondary" data-product-recipe="'+escapeHtml(p.id)+'">Recipe</button>'+(p.active?'<button type="button" data-product-archive="'+escapeHtml(p.id)+'">Archive</button>':'')+'</div></td></tr>';
+    }).join("") : '<tr><td colspan="6" class="empty">No products added yet.</td></tr>';
+    const active = products.filter(p=>p.active);
+    $("recipeProduct").innerHTML = '<option value="">Select a product</option>'+active.map(p=>'<option value="'+escapeHtml(p.id)+'">'+escapeHtml(p.name+(p.variant?' · '+p.variant:''))+'</option>').join("");
+    if (currentRecipeProductId && active.some(p=>p.id===currentRecipeProductId)) $("recipeProduct").value=currentRecipeProductId;
+  }
+  function renderIngredients() {
+    const ingredients = dashboardData.ingredients || [];
+    $("ingredientsBody").innerHTML = ingredients.length ? ingredients.map(i=>
+      '<tr><td><strong>'+escapeHtml(i.name)+'</strong><div class="small muted">'+escapeHtml(i.category||"Other")+(i.active?'':' · Archived')+'</div></td>'+
+      '<td>'+Number(i.purchase_pack_quantity)+' '+escapeHtml(i.purchase_pack_unit)+' ('+Number(i.normalized_pack_quantity)+' '+escapeHtml(i.base_unit)+')</td>'+
+      '<td>'+money(i.purchase_price)+'</td><td>'+money(i.unit_cost_per_base_unit)+' / '+escapeHtml(i.base_unit)+'</td>'+
+      '<td><div class="actions"><button type="button" class="secondary" data-ingredient-edit="'+escapeHtml(i.id)+'">Edit</button>'+(i.active?'<button type="button" data-ingredient-archive="'+escapeHtml(i.id)+'">Archive</button>':'')+'</div></td></tr>'
+    ).join("") : '<tr><td colspan="5" class="empty">No ingredients added yet.</td></tr>';
+  }
+  let currentRecipeProductId = "";
+  function recipeLineHtml(line={}) {
+    const options = (dashboardData.ingredients||[]).filter(i=>i.active).map(i=>
+      '<option value="'+escapeHtml(i.id)+'" '+(line.ingredient_id===i.id?'selected':'')+'>'+escapeHtml(i.name+' ('+i.base_unit+')')+'</option>'
+    ).join("");
+    return '<div class="customer-grid recipe-line" style="align-items:end;margin-bottom:10px">'+
+      '<div><label>Ingredient</label><select class="recipe-ingredient"><option value="">Choose ingredient</option>'+options+'</select></div>'+
+      '<div><label>Quantity (base unit)</label><input class="recipe-quantity" type="number" min="0.001" step="0.001" value="'+(line.quantity?Number(line.quantity):'')+'" placeholder="e.g. 120"></div>'+
+      '<div class="actions"><button type="button" class="secondary recipe-remove">Remove</button></div></div>';
+  }
+  function updateRecipeCost() {
+    const product = (dashboardData.products||[]).find(p=>p.id===currentRecipeProductId);
+    if (!product) { $("recipeCostSummary").textContent="Choose a product to see its recipe costing."; return; }
+    let cost=0, valid=true, lines=0;
+    document.querySelectorAll("#recipeLines .recipe-line").forEach(row=>{
+      const ingredient=(dashboardData.ingredients||[]).find(i=>i.id===row.querySelector(".recipe-ingredient").value);
+      const qty=Number(row.querySelector(".recipe-quantity").value);
+      if (!ingredient || !Number.isFinite(qty) || qty<=0) { valid=false; return; }
+      cost+=qty*Number(ingredient.unit_cost_per_base_unit||0); lines++;
+    });
+    const margin=Number(product.selling_price)-cost;
+    $("recipeCostSummary").textContent = lines ? "Estimated ingredient cost: "+money(cost)+" · Selling price: "+money(product.selling_price)+" · Estimated gross margin before other costs: "+money(margin)+" ("+(margin/Number(product.selling_price)*100).toFixed(1)+"%)"+(valid?"":" · Complete all recipe lines to confirm the estimate.") : "Add ingredients and quantities to calculate recipe cost.";
+  }
+  function renderRecipeEditor() {
+    const product=(dashboardData.products||[]).find(p=>p.id===currentRecipeProductId);
+    if (!product) {
+      $("recipeLines").innerHTML='<div class="empty">Choose a product to edit its recipe.</div>';
+      $("addRecipeLine").disabled=true; $("saveRecipeBtn").disabled=true; updateRecipeCost(); return;
+    }
+    const lines=productRecipeLines(product.id);
+    $("recipeLines").innerHTML=lines.length?lines.map(line=>recipeLineHtml(line)).join(""):recipeLineHtml();
+    $("addRecipeLine").disabled=!(dashboardData.ingredients||[]).some(i=>i.active);
+    $("saveRecipeBtn").disabled=!(dashboardData.ingredients||[]).some(i=>i.active);
+    updateRecipeCost();
+  }
+  function switchProductView(view) {
+    document.querySelectorAll("[data-product-view]").forEach(b=>b.classList.toggle("active",b.dataset.productView===view));
+    ["products","ingredients","recipes"].forEach(v=>$("productView"+v.charAt(0).toUpperCase()+v.slice(1)).classList.toggle("hidden",v!==view));
+  }
+  function resetProductForm() {
+    editingProductId=null; $("productForm").reset(); $("productCategory").value="Cake";
+    $("productFormTitle").textContent="Add a product"; $("saveProductBtn").textContent="Save product"; $("cancelProductEdit").classList.add("hidden"); showMessage($("productMessage"),"");
+  }
+  function resetIngredientForm() {
+    editingIngredientId=null; $("ingredientForm").reset(); $("ingredientCategory").value="Dairy"; $("ingredientBaseUnit").value="g"; syncIngredientPackUnits();
+    $("ingredientFormTitle").textContent="Add an ingredient"; $("saveIngredientBtn").textContent="Save ingredient"; $("cancelIngredientEdit").classList.add("hidden"); showMessage($("ingredientMessage"),"");
+  }
+  function syncIngredientPackUnits() {
+    const base=$("ingredientBaseUnit").value;
+    const allowed={g:["g","kg"],ml:["ml","L"],pcs:["pcs"]}[base];
+    const current=$("ingredientPackUnit").value;
+    $("ingredientPackUnit").innerHTML=allowed.map(u=>'<option value="'+u+'">'+u+'</option>').join("");
+    if(allowed.includes(current)) $("ingredientPackUnit").value=current;
+    $("ingredientUnitHint").textContent="Recipe quantity will be recorded in "+({g:"grams (g)",ml:"millilitres (ml)",pcs:"pieces (pcs)"}[base])+".";
+  }
+  $("ingredientBaseUnit").addEventListener("change",syncIngredientPackUnits);
+  $("productForm").addEventListener("submit",async e=>{
+    e.preventDefault(); const b=$("saveProductBtn"); b.disabled=true;
+    try {
+      await adminRequest({action:"save_product",id:editingProductId||undefined,name:$("productName").value,variant:$("productVariant").value,category:$("productCategory").value,description:$("productDescription").value,sellingPrice:$("productPrice").value});
+      const data=await adminRequest({action:"dashboard"}); dashboardData=data; renderProducts(); renderIngredients(); renderRecipeEditor(); resetProductForm(); showMessage($("productMessage"),"Product saved.","success");
+    } catch(err){showMessage($("productMessage"),err.message,"error");} finally{b.disabled=false;}
+  });
+  $("cancelProductEdit").addEventListener("click",resetProductForm);
+  $("productsBody").addEventListener("click",async e=>{
+    const b=e.target.closest("button"); if(!b)return;
+    const edit=b.dataset.productEdit, recipe=b.dataset.productRecipe, archive=b.dataset.productArchive;
+    if(edit){const p=(dashboardData.products||[]).find(x=>x.id===edit);if(!p)return;editingProductId=p.id;$("productName").value=p.name;$("productVariant").value=p.variant||"";$("productCategory").value=p.category||"Other";$("productDescription").value=p.description||"";$("productPrice").value=Number(p.selling_price).toFixed(2);$("productFormTitle").textContent="Edit product";$("saveProductBtn").textContent="Update product";$("cancelProductEdit").classList.remove("hidden");switchProductView("products");$("productFormTitle").scrollIntoView({behavior:"smooth",block:"center"});return;}
+    if(recipe){currentRecipeProductId=recipe;switchProductView("recipes");renderProducts();renderRecipeEditor();return;}
+    if(archive){const p=(dashboardData.products||[]).find(x=>x.id===archive);if(!p||!confirm("Archive this product? Existing orders and recipe history will remain unchanged."))return;b.disabled=true;try{await adminRequest({action:"archive_product",id:archive});const data=await adminRequest({action:"dashboard"});dashboardData=data;renderProducts();renderRecipeEditor();}catch(err){alert(err.message);}finally{b.disabled=false;}}
+  });
+  $("ingredientForm").addEventListener("submit",async e=>{
+    e.preventDefault();const b=$("saveIngredientBtn");b.disabled=true;
+    try{
+      await adminRequest({action:"save_ingredient",id:editingIngredientId||undefined,name:$("ingredientName").value,category:$("ingredientCategory").value,baseUnit:$("ingredientBaseUnit").value,packQty:$("ingredientPackQty").value,packUnit:$("ingredientPackUnit").value,purchasePrice:$("ingredientPurchasePrice").value});
+      const data=await adminRequest({action:"dashboard"});dashboardData=data;renderProducts();renderIngredients();renderRecipeEditor();resetIngredientForm();showMessage($("ingredientMessage"),"Ingredient saved. Recipe costs have been recalculated using the latest purchase price.","success");
+    }catch(err){showMessage($("ingredientMessage"),err.message,"error");}finally{b.disabled=false;}
+  });
+  $("cancelIngredientEdit").addEventListener("click",resetIngredientForm);
+  $("ingredientsBody").addEventListener("click",async e=>{
+    const b=e.target.closest("button");if(!b)return;
+    const edit=b.dataset.ingredientEdit,archive=b.dataset.ingredientArchive;
+    if(edit){const i=(dashboardData.ingredients||[]).find(x=>x.id===edit);if(!i)return;editingIngredientId=i.id;$("ingredientName").value=i.name;$("ingredientCategory").value=i.category||"Other";$("ingredientBaseUnit").value=i.base_unit;syncIngredientPackUnits();$("ingredientPackQty").value=i.purchase_pack_quantity;$("ingredientPackUnit").value=i.purchase_pack_unit;$("ingredientPurchasePrice").value=Number(i.purchase_price).toFixed(2);$("ingredientFormTitle").textContent="Edit ingredient";$("saveIngredientBtn").textContent="Update ingredient";$("cancelIngredientEdit").classList.remove("hidden");switchProductView("ingredients");$("ingredientFormTitle").scrollIntoView({behavior:"smooth",block:"center"});return;}
+    if(archive){const i=(dashboardData.ingredients||[]).find(x=>x.id===archive);if(!i||!confirm("Archive this ingredient? Recipes using it will remain saved, but you cannot add it to new recipe lines."))return;b.disabled=true;try{await adminRequest({action:"archive_ingredient",id:archive});const data=await adminRequest({action:"dashboard"});dashboardData=data;renderProducts();renderIngredients();renderRecipeEditor();}catch(err){alert(err.message);}finally{b.disabled=false;}}
+  });
+  $("recipeProduct").addEventListener("change",()=>{currentRecipeProductId=$("recipeProduct").value;renderRecipeEditor();});
+  $("addRecipeLine").addEventListener("click",()=>{if(!(dashboardData.ingredients||[]).some(i=>i.active))return;$("recipeLines").insertAdjacentHTML("beforeend",recipeLineHtml());updateRecipeCost();});
+  $("recipeLines").addEventListener("input",e=>{if(e.target.matches(".recipe-quantity"))updateRecipeCost();});
+  $("recipeLines").addEventListener("change",e=>{if(e.target.matches(".recipe-ingredient"))updateRecipeCost();});
+  $("recipeLines").addEventListener("click",e=>{const b=e.target.closest(".recipe-remove");if(b){b.closest(".recipe-line").remove();updateRecipeCost();}});
+  $("saveRecipeBtn").addEventListener("click",async()=>{
+    const items=[];let invalid=false;
+    document.querySelectorAll("#recipeLines .recipe-line").forEach(row=>{const ingredientId=row.querySelector(".recipe-ingredient").value;const quantity=Number(row.querySelector(".recipe-quantity").value);if(!ingredientId||!Number.isFinite(quantity)||quantity<=0)invalid=true;else items.push({ingredientId,quantity});});
+    if(invalid||!items.length){showMessage($("recipeMessage"),"Please select an ingredient and enter a positive quantity for every line.","error");return;}
+    const b=$("saveRecipeBtn");b.disabled=true;
+    try{await adminRequest({action:"save_recipe",productId:currentRecipeProductId,items});const data=await adminRequest({action:"dashboard"});dashboardData=data;renderProducts();renderIngredients();renderRecipeEditor();showMessage($("recipeMessage"),"Recipe saved. Ingredient cost and estimated gross margin are updated.","success");}
+    catch(err){showMessage($("recipeMessage"),err.message,"error");}finally{b.disabled=false;}
+  });
+  document.querySelectorAll("[data-product-view]").forEach(b=>b.addEventListener("click",()=>switchProductView(b.dataset.productView)));
+  syncIngredientPackUnits();
 
   // Finance & Expenses: all writes go through the authenticated admin API.
   let editingExpenseId = null;
