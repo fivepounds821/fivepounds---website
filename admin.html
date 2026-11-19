@@ -184,7 +184,7 @@
               <div id="productMessage" class="message" role="status"></div>
             </form>
           </section>
-          <div class="table-wrap"><table style="min-width:740px"><thead><tr><th>Product</th><th>Category</th><th>Selling price</th><th>Recipe cost</th><th>Est. gross margin</th><th>Actions</th></tr></thead><tbody id="productsBody"><tr><td colspan="6" class="empty">No products added yet.</td></tr></tbody></table></div>
+          <div class="table-wrap"><table style="min-width:740px"><thead><tr><th>Product</th><th>Category</th><th>Selling price</th><th>Recipe cost</th><th>After ingredient cost</th><th>Actions</th></tr></thead><tbody id="productsBody"><tr><td colspan="6" class="empty">No products added yet.</td></tr></tbody></table></div>
         </section>
         <section id="productViewIngredients" class="hidden">
           <div class="toolbar"><div><strong>Ingredient list</strong><div class="hint">Record package size and price. Unit cost is calculated automatically.</div></div></div>
@@ -681,8 +681,8 @@
   }
   let currentRecipeProductId = "";
   function recipeLineHtml(line={}) {
-    const options = (dashboardData.ingredients||[]).filter(i=>i.active).map(i=>
-      '<option value="'+escapeHtml(i.id)+'" '+(line.ingredient_id===i.id?'selected':'')+'>'+escapeHtml(i.name+' ('+i.base_unit+')')+'</option>'
+    const options = (dashboardData.ingredients||[]).map(i=>
+      '<option value="'+escapeHtml(i.id)+'" '+(line.ingredient_id===i.id?'selected':'')+'>'+escapeHtml(i.name+' ('+i.base_unit+')'+(i.active?'':' · archived'))+'</option>'
     ).join("");
     return '<div class="customer-grid recipe-line" style="align-items:end;margin-bottom:10px">'+
       '<div><label>Ingredient</label><select class="recipe-ingredient"><option value="">Choose ingredient</option>'+options+'</select></div>'+
@@ -700,7 +700,7 @@
       cost+=qty*Number(ingredient.unit_cost_per_base_unit||0); lines++;
     });
     const margin=Number(product.selling_price)-cost;
-    $("recipeCostSummary").textContent = lines ? "Estimated ingredient cost: "+money(cost)+" · Selling price: "+money(product.selling_price)+" · Estimated gross margin before other costs: "+money(margin)+" ("+(margin/Number(product.selling_price)*100).toFixed(1)+"%)"+(valid?"":" · Complete all recipe lines to confirm the estimate.") : "Add ingredients and quantities to calculate recipe cost.";
+    $("recipeCostSummary").textContent = lines ? "Estimated ingredient cost: "+money(cost)+" · Selling price: "+money(product.selling_price)+" · Estimated balance after ingredient cost: "+money(margin)+" ("+(margin/Number(product.selling_price)*100).toFixed(1)+"%)"+(valid?"":" · Complete all recipe lines to confirm the estimate.") : "Add ingredients and quantities to calculate recipe cost.";
   }
   function renderRecipeEditor() {
     const product=(dashboardData.products||[]).find(p=>p.id===currentRecipeProductId);
