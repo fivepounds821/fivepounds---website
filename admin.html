@@ -231,13 +231,139 @@
       '<p><strong>' + Number(c.stamps_balance || 0) + ' / 5</strong> Sweet Circle stamps</p>' +
       '<div class="small muted">Last order: ' + escapeHtml(c.last_order_at ? new Date(c.last_order_at).toLocaleDateString("en-MY",{timeZone:"Asia/Kuala_Lumpur"}) : "—") + '</div>' +
       '<div class="small">' + (c.rewards_opt_in ? '<span class="pill good">Sweet Circle member</span>' : '<span class="pill">Not enrolled</span>') + ' ' +
-      (c.marketing_opt_in ? '<span class="pill good">Marketing opt-in</span>' : '<span class="pill">No marketing</span>') + '</div></article>'
+      (c.marketing_opt_in ? '<span class="pill good">Marketing opt-in</span>' : '<span class="pill">No marketing</span>') + '</div>' +
+      (c.rewards_opt_in ? '<div class="actions" style="margin-top:12px"><button type="button" class="secondary" data-stamp-card="' + escapeHtml(c.id) + '">Download digital stamp card</button></div>' : '') +
+      '</article>'
     ).join("") : '<div class="empty">No matching customers yet.</div>';
   }
   async function refreshAfterAction(message) {
     await loadDashboard();
     if (message) alert(message);
   }
+
+  // Creates a personalized PNG locally in the browser. No customer data is sent to another service.
+  function downloadDigitalStampCard(customerId) {
+    const customer = (dashboardData.customers || []).find(c => c.id === customerId);
+    if (!customer || !customer.rewards_opt_in) {
+      alert("This customer is not enrolled in Sweet Circle.");
+      return;
+    }
+    const stamps = Math.max(0, Number(customer.stamps_balance || 0));
+    const progress = Math.min(stamps, 5);
+    const canvas = document.createElement("canvas");
+    canvas.width = 1080;
+    canvas.height = 1350;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      alert("Your browser could not create the stamp card. Please try another browser.");
+      return;
+    }
+    const roundedRect = (x, y, w, h, r, fill, stroke) => {
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, r);
+      if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+      if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 3; ctx.stroke(); }
+    };
+    const heart = (x, y, size, color) => {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(size / 100, size / 100);
+      ctx.beginPath();
+      ctx.moveTo(0, 30);
+      ctx.bezierCurveTo(-85, -25, -45, -75, 0, -35);
+      ctx.bezierCurveTo(45, -75, 85, -25, 0, 30);
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.restore();
+    };
+
+    ctx.fillStyle = "#f5ebdd";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    roundedRect(42, 42, 996, 1266, 34, "#fbf6ef", "#c9ad93");
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#76543d";
+    ctx.font = "700 27px Arial, sans-serif";
+    ctx.letterSpacing = "7px";
+    ctx.fillText("FIVEPOUNDS", 540, 145);
+    ctx.letterSpacing = "0px";
+    ctx.fillStyle = "#543b2d";
+    ctx.font = "italic 78px Georgia, serif";
+    ctx.fillText("Sweet Circle", 540, 260);
+    ctx.fillStyle = "#8c6d56";
+    ctx.font = "30px Arial, sans-serif";
+    ctx.fillText("A little sweetness, a little reward.", 540, 320);
+    ctx.strokeStyle = "#d7c3ac";
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(150, 385); ctx.lineTo(930, 385); ctx.stroke();
+
+    ctx.fillStyle = "#76543d";
+    ctx.font = "28px Arial, sans-serif";
+    ctx.fillText("THIS STAMP CARD BELONGS TO", 540, 470);
+    ctx.fillStyle = "#543b2d";
+    ctx.font = "bold 48px Georgia, serif";
+    const customerName = String(customer.display_name || "Sweet Circle Member");
+    ctx.fillText(customerName.length > 26 ? customerName.slice(0, 24) + "…" : customerName, 540, 545);
+
+    ctx.fillStyle = "#543b2d";
+    ctx.font = "42px Georgia, serif";
+    ctx.fillText("Your Stamp Collection", 540, 665);
+    const startX = 270, gap = 135, y = 805;
+    for (let i = 0; i < 5; i++) {
+      const x = startX + i * gap;
+      ctx.beginPath();
+      ctx.arc(x, y, 48, 0, Math.PI * 2);
+      ctx.fillStyle = i < progress ? "#a87958" : "#e6d8c8";
+      ctx.fill();
+      if (i < progress) heart(x, y + 2, 48, "#fffaf4");
+      else {
+        ctx.strokeStyle = "#b99f87";
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(x, y, 18, 0, Math.PI * 2); ctx.stroke();
+      }
+    }
+    ctx.fillStyle = "#543b2d";
+    ctx.font = "bold 58px Georgia, serif";
+    ctx.fillText(progress + " / 5 Stamps", 540, 930);
+
+    roundedRect(150, 1000, 780, 150, 24, "#fffaf4", "#e3d2c1");
+    ctx.fillStyle = "#76543d";
+    ctx.font = "bold 54px Georgia, serif";
+    ctx.fillText(stamps >= 5 ? "RM5 REWARD UNLOCKED" : "RM5 OFF", 540, 1065);
+    ctx.fillStyle = "#76543d";
+    ctx.font = "25px Arial, sans-serif";
+    ctx.fillText(stamps >= 5 ? "You have enough stamps to redeem!" : "Collect 5 stamps · Next order min. RM40", 540, 1110);
+
+    ctx.fillStyle = "#8c6d56";
+    ctx.font = "24px Arial, sans-serif";
+    ctx.fillText("Total stamp balance: " + stamps, 540, 1200);
+    ctx.font = "italic 25px Georgia, serif";
+    ctx.fillText("Thank you for being part of our Sweet Circle ♡", 540, 1250);
+
+    canvas.toBlob(blob => {
+      if (!blob) {
+        alert("Could not generate the card image. Please try again.");
+        return;
+      }
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const safeName = customerName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "member";
+      link.href = objectUrl;
+      link.download = "fivepounds-sweet-circle-" + safeName + ".png";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+    }, "image/png");
+  }
+
+  $("customersGrid").addEventListener("click", event => {
+    const button = event.target.closest("[data-stamp-card]");
+    if (!button) return;
+    button.disabled = true;
+    try { downloadDigitalStampCard(button.dataset.stampCard); }
+    finally { button.disabled = false; }
+  });
 
   const malaysiaTodayForCustomOrder = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit"
