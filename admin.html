@@ -87,6 +87,20 @@
       </section>
       <section id="customersTab" class="panel hidden">
         <div class="toolbar"><div><strong>Customer records</strong><div class="hint">Repeat purchase and loyalty overview</div></div><input id="customerSearch" type="search" placeholder="Search name or phone"></div>
+        <section class="panel" id="sweetCircleTestPanel" style="margin:0 0 18px;background:#fffaf4;border:1px dashed #b98c72">
+          <div class="toolbar" style="margin-bottom:8px"><div><strong>Sweet Circle · Test Mode</strong><div class="hint">A private simulation only. Changes stay in this page and are never saved to customer records or Supabase.</div></div><span class="pill warn">TEST ONLY</span></div>
+          <div class="customer-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));align-items:end">
+            <div><label for="testStampCount">Simulated stamp balance</label><input id="testStampCount" type="number" min="0" max="99" value="0"></div>
+            <div><label for="testSubtotal">Test order subtotal (RM)</label><input id="testSubtotal" type="number" min="0" step="0.01" value="40.00"></div>
+            <div><label>Reward status</label><div id="testRewardStatus" class="hint" style="padding:11px 0">Collect 5 stamps to unlock the reward.</div></div>
+          </div>
+          <div class="actions" style="margin-top:12px">
+            <button id="testAddStamp" type="button">+ Add 1 test stamp</button>
+            <button id="testRedeem" type="button" class="secondary" disabled>Simulate RM5 redemption</button>
+            <button id="testReset" type="button" class="secondary">Reset simulation</button>
+          </div>
+          <div id="testSimulationLog" class="message" role="status" aria-live="polite">Ready. This simulator does not create orders, change real balances, or call the admin API.</div>
+        </section>
         <div id="customersGrid" class="customer-grid"></div>
       </section>
       <p class="foot" id="adminIdentity"></p>
@@ -323,6 +337,47 @@
     $("ordersTab").classList.toggle("hidden", button.dataset.tab !== "orders");
     $("customersTab").classList.toggle("hidden", button.dataset.tab !== "customers");
   }));
+  // Isolated Sweet Circle simulator: in-memory only; never calls adminRequest or writes to Supabase.
+  let testStampBalance = 0;
+  function renderSweetCircleTest() {
+    const count = Math.max(0, Math.min(99, Number($("testStampCount").value) || 0));
+    const subtotal = Math.max(0, Number($("testSubtotal").value) || 0);
+    $("testStampCount").value = String(count);
+    const eligible = count >= 5 && subtotal >= 40;
+    $("testRedeem").disabled = !eligible;
+    $("testRewardStatus").textContent = count < 5
+      ? "Need " + (5 - count) + " more stamp(s)."
+      : subtotal < 40 ? "5 stamps ready, but subtotal must reach RM40."
+      : "Reward unlocked · RM5 OFF available.";
+  }
+  $("testStampCount").addEventListener("input", () => {
+    testStampBalance = Math.max(0, Math.min(99, Number($("testStampCount").value) || 0));
+    renderSweetCircleTest();
+  });
+  $("testSubtotal").addEventListener("input", renderSweetCircleTest);
+  $("testAddStamp").addEventListener("click", () => {
+    testStampBalance = Math.min(99, testStampBalance + 1);
+    $("testStampCount").value = String(testStampBalance);
+    renderSweetCircleTest();
+    showMessage($("testSimulationLog"), "Added 1 simulated stamp. Test balance: " + testStampBalance + ". No real customer data changed.", "success");
+  });
+  $("testRedeem").addEventListener("click", () => {
+    const subtotal = Math.max(0, Number($("testSubtotal").value) || 0);
+    if (testStampBalance < 5 || subtotal < 40) return;
+    testStampBalance -= 5;
+    $("testStampCount").value = String(testStampBalance);
+    renderSweetCircleTest();
+    showMessage($("testSimulationLog"), "Simulation successful: RM5 discount applied to this test order and 5 stamps deducted. Remaining test balance: " + testStampBalance + ". Add stamps again to simulate the next cycle.", "success");
+  });
+  $("testReset").addEventListener("click", () => {
+    testStampBalance = 0;
+    $("testStampCount").value = "0";
+    $("testSubtotal").value = "40.00";
+    renderSweetCircleTest();
+    showMessage($("testSimulationLog"), "Simulation reset. No real customer data changed.");
+  });
+  renderSweetCircleTest();
+
   $("orderSearch").addEventListener("input", renderOrders);
   $("customerSearch").addEventListener("input", renderCustomers);
 
