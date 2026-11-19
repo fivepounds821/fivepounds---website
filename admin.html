@@ -103,6 +103,8 @@
         </section>
         <div class="toolbar"><div><strong>Order list</strong><div class="hint">Latest 500 orders · amounts in RM</div></div><input id="orderSearch" type="search" placeholder="Search order, customer or phone"></div>
         <div class="table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Collection / delivery</th><th>Total</th><th>Payment</th><th>Status & actions</th></tr></thead><tbody id="ordersBody"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody></table></div>
+        <div class="toolbar" style="margin-top:22px"><div><strong>Historical orders</strong><div class="hint">Imported records · read-only · no Sweet Circle stamps</div></div><span class="pill">Historical</span></div>
+        <div class="table-wrap"><table style="min-width:900px"><thead><tr><th>Date / reference</th><th>Customer</th><th>Items</th><th>Pickup / delivery</th><th>Total</th><th>Cost / profit</th><th>Payment / status</th></tr></thead><tbody id="historicalOrdersBody"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody></table></div>
       </section>
       <section id="customersTab" class="panel hidden">
         <div class="toolbar"><div><strong>Customer records</strong><div class="hint">Repeat purchase and loyalty overview</div></div><input id="customerSearch" type="search" placeholder="Search name or phone"></div>
@@ -307,6 +309,7 @@
       renderStats();
       renderBusinessInsights();
       renderOrders();
+      renderHistoricalOrders();
       renderCustomers();
       renderFinance();
       renderProducts();
@@ -323,16 +326,20 @@
   }
   function renderStats() {
     const orders = dashboardData.orders || [];
+    const historical = dashboardData.historicalOrders || [];
     const completedPaid = orders.filter(o => o.status === "completed" && o.paid);
-    const completedRevenue = completedPaid.reduce((sum, order) => sum + Number(order.amount_due || 0), 0);
+    const historicalDonePaid = historical.filter(o => String(o.status || "").toLowerCase() === "done" && o.paid);
+    const completedRevenue = completedPaid.reduce((sum, order) => sum + Number(order.amount_due || 0), 0)
+      + historicalDonePaid.reduce((sum, order) => sum + Number(order.total || 0), 0);
     $("statRevenue").textContent = money(completedRevenue);
-    $("statOrders").textContent = orders.length;
+    $("statOrders").textContent = orders.length + historical.length;
     $("statPending").textContent = orders.filter(o => !["completed","cancelled"].includes(o.status)).length;
-    $("statCompleted").textContent = completedPaid.length;
+    $("statCompleted").textContent = completedPaid.length + historicalDonePaid.length;
     $("statCustomers").textContent = (dashboardData.customers || []).length;
   }
   function renderBusinessInsights() {
     const orders = (dashboardData.orders || []).filter(o => o.status === "completed" && o.paid);
+    const historical = (dashboardData.historicalOrders || []).filter(o => String(o.status || "").toLowerCase() === "done" && o.paid);
     const nowParts = new Intl.DateTimeFormat("en-CA", {
       timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit"
     }).formatToParts(new Date());
@@ -357,6 +364,10 @@
       const key = parts.find(p => p.type === "year").value + "-" + parts.find(p => p.type === "month").value;
       if (monthMap.has(key)) monthMap.get(key).total += Number(order.amount_due || 0);
     }
+    for (const order of historical) {
+      const key = String(order.order_date || "").slice(0, 7);
+      if (monthMap.has(key)) monthMap.get(key).total += Number(order.total || 0);
+    }
     const maxRevenue = Math.max(1, ...months.map(m => m.total));
     $("revenueChart").innerHTML = months.map(m => {
       const height = m.total > 0 ? Math.max(5, Math.round(m.total / maxRevenue * 100)) : 2;
@@ -369,6 +380,12 @@
         const size = String(item.size || "").trim();
         const label = product === "Custom Cake" && size ? product + " · " + size : product;
         productTotals.set(label, (productTotals.get(label) || 0) + Math.max(0, Number(item.qty) || 0));
+      }
+    }
+    for (const order of historical) {
+      for (const item of (Array.isArray(order.items) ? order.items : [])) {
+        const label = String(item.product || "Other").trim();
+        productTotals.set(label, (productTotals.get(label) || 0) + Math.max(0, Number(item.quantity ?? item.qty) || 0));
       }
     }
     const top = [...productTotals.entries()].sort((a,b) => b[1] - a[1]).slice(0,5);
@@ -416,6 +433,23 @@
         (o.status === "cancelled" ? '<button style="background:#a33f35" data-delete="' + escapeHtml(o.id) + '">Delete order</button>' : '') +
         '<div class="small muted">Balance: ' + stamps + ' stamps</div></div></td></tr>';
     }).join("");
+  }
+  function renderHistoricalOrders() {
+    const rows = dashboardData.historicalOrders || [];
+    $("historicalOrdersBody").innerHTML = rows.length ? rows.map(o => {
+      const items = (Array.isArray(o.items) ? o.items : []).map(i =>
+        escapeHtml(i.product || "Product") + " × " + escapeHtml(i.quantity ?? i.qty ?? 1)
+      ).join("<br>");
+      return '<tr>' +
+        '<td><strong>Historical · ' + escapeHtml(o.order_date) + '</strong><div class="small muted">' + escapeHtml(o.source_sheet || "Imported record") + ' · Row ' + escapeHtml(o.source_row ?? "—") + '</div></td>' +
+        '<td><strong>' + escapeHtml(o.customer_name) + '</strong><div class="small muted">' + escapeHtml(o.contact_no || o.instagram || "No contact recorded") + '</div></td>' +
+        '<td>' + items + '</td>' +
+        '<td>' + escapeHtml(o.pickup_delivery || "—") + (o.order_time ? '<div class="small muted">' + escapeHtml(o.order_time) + '</div>' : '') + (o.remarks ? '<div class="small muted">' + escapeHtml(o.remarks) + '</div>' : '') + '</td>' +
+        '<td><strong>' + money(o.total) + '</strong></td>' +
+        '<td>' + money(o.cost) + '<div class="small muted">Profit ' + money(o.profit) + '</div></td>' +
+        '<td>' + (o.paid ? '<span class="pill good">Paid</span>' : '<span class="pill warn">Unpaid</span>') + '<div class="small muted">' + escapeHtml(o.status || "—") + '</div><span class="pill">No stamps</span></td>' +
+        '</tr>';
+    }).join("") : '<tr><td colspan="7" class="empty">No historical orders found.</td></tr>';
   }
   function renderCustomers() {
     const q = $("customerSearch").value.trim().toLowerCase();
@@ -849,7 +883,10 @@
     const expenses = (dashboardData.expenses || []).filter(e => String(e.expense_date || "").slice(0,7) === month);
     const revenue = (dashboardData.orders || []).filter(o =>
       o.status === "completed" && o.paid && String(o.paid_at || "").slice(0,7) === month
-    ).reduce((sum,o)=>sum+Number(o.amount_due||0),0);
+    ).reduce((sum,o)=>sum+Number(o.amount_due||0),0)
+      + (dashboardData.historicalOrders || []).filter(o =>
+        String(o.status || "").toLowerCase() === "done" && o.paid && String(o.order_date || "").slice(0,7) === month
+      ).reduce((sum,o)=>sum+Number(o.total||0),0);
     const spent = expenses.reduce((sum,e)=>sum+Number(e.amount||0),0);
     $("financeRevenue").textContent = money(revenue);
     $("financeExpenses").textContent = money(spent);
