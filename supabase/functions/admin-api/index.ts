@@ -71,13 +71,16 @@ Deno.serve(async (req: Request) => {
     const action = String(body.action || "");
 
     if (action === "dashboard") {
-      const [orders, customers, transactions, expenses] = await Promise.all([
+      const [orders, customers, transactions, expenses, products, ingredients, recipeItems] = await Promise.all([
         db("orders?select=id,order_number,customer_id,customer_name,customer_phone,preferred_date,preferred_time,fulfillment_method,collection_point,delivery_address,notes,items,item_count,subtotal,discount,amount_due,status,paid,paid_at,rewards_opt_in_at_order,marketing_opt_in_at_order,created_at&order=created_at.desc&limit=500"),
         db("customer_summary?select=id,display_name,phone,rewards_opt_in,marketing_opt_in,created_at,completed_paid_orders,lifetime_spend,first_order_at,last_order_at,stamps_balance&order=last_order_at.desc.nullslast&limit=1000"),
         db("loyalty_transactions?select=id,customer_id,order_id,transaction_type,stamps_delta,description,created_at&order=created_at.desc&limit=300"),
         db("finance_expenses?select=id,expense_date,category,description,vendor,amount,payment_method,notes,created_at,updated_at&order=expense_date.desc,created_at.desc&limit=1000"),
+        db("products?select=id,name,variant,category,description,selling_price,active,created_at,updated_at&order=name.asc,variant.asc&limit=1000"),
+        db("ingredients?select=id,name,category,base_unit,purchase_pack_quantity,purchase_pack_unit,purchase_price,normalized_pack_quantity,unit_cost_per_base_unit,active,created_at,updated_at&order=name.asc&limit=1000"),
+        db("product_recipe_items?select=product_id,ingredient_id,quantity,ingredient:ingredients(id,name,base_unit,unit_cost_per_base_unit,active)&order=created_at.asc&limit=3000"),
       ]);
-      return respond({ ok: true, orders, customers, transactions, expenses, adminEmail: email }, 200, origin);
+      return respond({ ok: true, orders, customers, transactions, expenses, products, ingredients, recipeItems, adminEmail: email }, 200, origin);
     }
 
 
@@ -139,6 +142,88 @@ Deno.serve(async (req: Request) => {
       });
       if (!Array.isArray(rows) || rows.length !== 1) return respond({ error: "Expense not found or could not be deleted." }, 404, origin);
       return respond({ ok: true, deletedExpenseId: id }, 200, origin);
+    }
+
+
+    if (action === "save_product") {
+      const id = String(body.id || "");
+      const updating = Boolean(id);
+      if (updating && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) return respond({ error: "Invalid product ID." }, 400, origin);
+      const name = String(body.name || "").trim();
+      const variant = String(body.variant || "").trim();
+      const category = String(body.category || "Other").trim();
+      const description = String(body.description || "").trim();
+      const sellingPrice = Number(body.sellingPrice);
+      if (!name || name.length > 120) return respond({ error: "Product name must be between 1 and 120 characters." }, 400, origin);
+      if (variant.length > 80 || category.length > 80 || description.length > 1000) return respond({ error: "Product details exceed the allowed length." }, 400, origin);
+      if (!Number.isFinite(sellingPrice) || sellingPrice <= 0 || sellingPrice > 100000 || Math.round(sellingPrice * 100) !== sellingPrice * 100) return respond({ error: "Enter a valid selling price in RM." }, 400, origin);
+      const payload = { name, variant, category: category || "Other", description: description || null, selling_price: sellingPrice, updated_at: new Date().toISOString() };
+      const path = updating ? "products?id=eq." + encodeURIComponent(id) + "&select=id,name,variant,category,description,selling_price,active,created_at,updated_at" : "products?select=id,name,variant,category,description,selling_price,active,created_at,updated_at";
+      const rows = await db(path, { method: updating ? "PATCH" : "POST", headers: { "Prefer": "return=representation" }, body: JSON.stringify(payload) });
+      if (!Array.isArray(rows) || rows.length !== 1) return respond({ error: "Product could not be saved. Check that this name and variant are not already in use." }, 409, origin);
+      return respond({ ok: true, product: rows[0] }, updating ? 200 : 201, origin);
+    }
+
+    if (action === "archive_product" || action === "archive_ingredient") {
+      const id = String(body.id || "");
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) return respond({ error: "Invalid record ID." }, 400, origin);
+      const table = action === "archive_product" ? "products" : "ingredients";
+      const rows = await db(table + "?id=eq." + encodeURIComponent(id) + "&select=id,active", { method: "PATCH", headers: { "Prefer": "return=representation" }, body: JSON.stringify({ active: false, updated_at: new Date().toISOString() }) });
+      if (!Array.isArray(rows) || rows.length !== 1) return respond({ error: "Record not found or could not be archived." }, 404, origin);
+      return respond({ ok: true, id }, 200, origin);
+    }
+
+    if (action === "save_ingredient") {
+      const id = String(body.id || "");
+      const updating = Boolean(id);
+      if (updating && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) return respond({ error: "Invalid ingredient ID." }, 400, origin);
+      const name = String(body.name || "").trim();
+      const category = String(body.category || "Other").trim();
+      const baseUnit = String(body.baseUnit || "");
+      const packUnit = String(body.packUnit || "");
+      const packQty = Number(body.packQty);
+      const purchasePrice = Number(body.purchasePrice);
+      const compatible = { g: ["g", "kg"], ml: ["ml", "L"], pcs: ["pcs"] };
+      if (!name || name.length > 120 || category.length > 80) return respond({ error: "Enter a valid ingredient name and category." }, 400, origin);
+      if (!Object.prototype.hasOwnProperty.call(compatible, baseUnit) || !compatible[baseUnit].includes(packUnit)) return respond({ error: "Purchase pack unit must match the ingredient base unit." }, 400, origin);
+      if (!Number.isFinite(packQty) || packQty <= 0 || packQty > 100000000 || Math.round(packQty * 1000) !== packQty * 1000) return respond({ error: "Enter a valid package quantity (up to 3 decimal places)." }, 400, origin);
+      if (!Number.isFinite(purchasePrice) || purchasePrice <= 0 || purchasePrice > 100000 || Math.round(purchasePrice * 100) !== purchasePrice * 100) return respond({ error: "Enter a valid purchase price in RM." }, 400, origin);
+      if (updating) {
+        const existing = await db("ingredients?id=eq." + encodeURIComponent(id) + "&select=id,base_unit&limit=1");
+        if (!Array.isArray(existing) || existing.length !== 1) return respond({ error: "Ingredient not found." }, 404, origin);
+        if (existing[0].base_unit !== baseUnit) {
+          const usage = await db("product_recipe_items?ingredient_id=eq." + encodeURIComponent(id) + "&select=product_id&limit=1");
+          if (Array.isArray(usage) && usage.length > 0) return respond({ error: "This ingredient is already used in a recipe. Its base unit cannot be changed; keep the current unit or archive it and create a new ingredient." }, 409, origin);
+        }
+      }
+      const payload = { name, category: category || "Other", base_unit: baseUnit, purchase_pack_quantity: packQty, purchase_pack_unit: packUnit, purchase_price: purchasePrice, updated_at: new Date().toISOString() };
+      const path = updating ? "ingredients?id=eq." + encodeURIComponent(id) + "&select=id,name,category,base_unit,purchase_pack_quantity,purchase_pack_unit,purchase_price,normalized_pack_quantity,unit_cost_per_base_unit,active,created_at,updated_at" : "ingredients?select=id,name,category,base_unit,purchase_pack_quantity,purchase_pack_unit,purchase_price,normalized_pack_quantity,unit_cost_per_base_unit,active,created_at,updated_at";
+      const rows = await db(path, { method: updating ? "PATCH" : "POST", headers: { "Prefer": "return=representation" }, body: JSON.stringify(payload) });
+      if (!Array.isArray(rows) || rows.length !== 1) return respond({ error: "Ingredient could not be saved. Check whether the name is already in use." }, 409, origin);
+      return respond({ ok: true, ingredient: rows[0] }, updating ? 200 : 201, origin);
+    }
+
+    if (action === "save_recipe") {
+      const productId = String(body.productId || "");
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(productId)) return respond({ error: "Choose a valid product." }, 400, origin);
+      if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 100) return respond({ error: "A recipe must contain between 1 and 100 ingredients." }, 400, origin);
+      const seen = new Set();
+      const items = [];
+      for (const item of body.items) {
+        const ingredientId = String(item?.ingredientId || "");
+        const quantity = Number(item?.quantity);
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(ingredientId)) return respond({ error: "Choose an ingredient for every recipe line." }, 400, origin);
+        if (seen.has(ingredientId)) return respond({ error: "Each ingredient can only appear once in a recipe." }, 400, origin);
+        if (!Number.isFinite(quantity) || quantity <= 0 || quantity > 10000000 || Math.round(quantity * 1000) !== quantity * 1000) return respond({ error: "Recipe quantities must be positive and use up to 3 decimal places." }, 400, origin);
+        seen.add(ingredientId);
+        items.push({ ingredient_id: ingredientId, quantity });
+      }
+      const products = await db("products?id=eq." + encodeURIComponent(productId) + "&select=id&limit=1");
+      if (!Array.isArray(products) || products.length !== 1) return respond({ error: "Product not found." }, 404, origin);
+      const ingredients = await db("ingredients?id=in.(" + [...seen].join(",") + ")&active=eq.true&select=id");
+      if (!Array.isArray(ingredients) || ingredients.length !== seen.size) return respond({ error: "One or more selected ingredients are inactive or unavailable." }, 409, origin);
+      const result = await db("rpc/replace_product_recipe", { method: "POST", body: JSON.stringify({ p_product_id: productId, p_items: items }) });
+      return respond({ ok: true, savedLines: result }, 200, origin);
     }
 
     if (action === "create_custom_order") {
