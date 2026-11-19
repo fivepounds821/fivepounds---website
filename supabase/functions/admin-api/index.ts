@@ -82,7 +82,7 @@ Deno.serve(async (req: Request) => {
 
     if (action === "create_custom_order") {
       const name = String(body.name || "").trim();
-      const phoneDigits = String(body.phone || "").replace(/\\D/g, "");
+      const phoneDigits = String(body.phone || "").replace(/\D/g, "");
       const phone = phoneDigits.startsWith("60") ? phoneDigits : phoneDigits.startsWith("0") ? "60" + phoneDigits.slice(1) : phoneDigits;
       const date = String(body.date || "");
       const time = String(body.time || "").trim();
@@ -96,8 +96,8 @@ Deno.serve(async (req: Request) => {
       const rewardsOptIn = body.rewardsOptIn === true;
 
       if (!name || name.length > 80) return respond({ error: "Please enter a valid customer name." }, 400, origin);
-      if (!/^60\\d{8,10}$/.test(phone)) return respond({ error: "Please enter a valid Malaysian WhatsApp number." }, 400, origin);
-      if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) return respond({ error: "Please choose a valid order date." }, 400, origin);
+      if (!/^60\d{8,10}$/.test(phone)) return respond({ error: "Please enter a valid Malaysian WhatsApp number." }, 400, origin);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return respond({ error: "Please choose a valid order date." }, 400, origin);
       const chosenDate = new Date(date + "T00:00:00Z");
       if (Number.isNaN(chosenDate.getTime()) || chosenDate.toISOString().slice(0, 10) !== date) {
         return respond({ error: "Please choose a valid order date." }, 400, origin);
@@ -143,7 +143,7 @@ Deno.serve(async (req: Request) => {
       const orderNotes = [
         "Custom cake: " + description,
         notes ? "Notes: " + notes : "",
-      ].filter(Boolean).join("\\n");
+      ].filter(Boolean).join("\n");
       const orderPayload = {
         customer_id: customerId,
         customer_name: name,
