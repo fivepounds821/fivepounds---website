@@ -189,7 +189,7 @@
         ? escapeHtml(o.collection_point)
         : "Grab Express<br><span class='small'>" + escapeHtml(o.delivery_address) + "</span>";
       const stamps = customerStamps(o.customer_id);
-      const canRedeem = Number(o.subtotal) >= 40 && Number(o.discount) === 0 && stamps >= 5 && ["pending","confirmed"].includes(o.status);
+      const canRedeem = o.rewards_opt_in_at_order === true && Number(o.subtotal) >= 40 && Number(o.discount) === 0 && stamps >= 5 && ["pending","confirmed"].includes(o.status);
       return '<tr>' +
         '<td><div class="order-title">' + escapeHtml(o.order_number) + '</div><div class="small muted">' + escapeHtml(o.preferred_date) + '<br>' + escapeHtml(o.preferred_time) + '</div></td>' +
         '<td><strong>' + escapeHtml(o.customer_name) + '</strong><div class="small muted">' + escapeHtml(o.customer_phone) + '</div></td>' +
