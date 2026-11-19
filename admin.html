@@ -326,13 +326,15 @@
     ctx.font = "bold 58px Georgia, serif";
     ctx.fillText(progress + " / 5 Stamps", 540, 930);
 
-    roundedRect(150, 1000, 780, 150, 24, "#fffaf4", "#e3d2c1");
+    roundedRect(150, 990, 780, 180, 24, "#fffaf4", "#e3d2c1");
     ctx.fillStyle = "#76543d";
     ctx.font = "bold 54px Georgia, serif";
-    ctx.fillText(stamps >= 5 ? "RM5 REWARD UNLOCKED" : "RM5 OFF", 540, 1065);
+    ctx.fillText(stamps >= 5 ? "RM5 REWARD UNLOCKED" : "RM5 OFF", 540, 1055);
     ctx.fillStyle = "#76543d";
     ctx.font = "25px Arial, sans-serif";
-    ctx.fillText(stamps >= 5 ? "You have enough stamps to redeem!" : "Collect 5 stamps · Next order min. RM40", 540, 1110);
+    ctx.fillText(stamps >= 5 ? "Redeem 5 stamps on your next order" : "Collect 5 stamps to unlock this reward", 540, 1105);
+    ctx.font = "23px Arial, sans-serif";
+    ctx.fillText("Minimum order subtotal: RM40", 540, 1140);
 
     ctx.fillStyle = "#8c6d56";
     ctx.font = "24px Arial, sans-serif";
