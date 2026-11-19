@@ -52,7 +52,37 @@
         <button data-tab="customers" type="button">Customers & stamps</button>
       </div>
       <section id="ordersTab" class="panel">
-        <div class="toolbar"><div><strong>Orders</strong><div class="hint">Latest 500 orders · amounts in RM</div></div><input id="orderSearch" type="search" placeholder="Search order, customer or phone"></div>
+        <div class="toolbar">
+          <div><strong>Orders</strong><div class="hint">Latest 500 orders · amounts in RM</div></div>
+          <div class="actions"><button id="toggleCustomOrder" type="button" class="secondary">+ Add Custom Cake Order</button><input id="orderSearch" type="search" placeholder="Search order, customer or phone"></div>
+        </div>
+        <section id="customOrderPanel" class="panel hidden" style="margin-bottom:16px;background:#faf7f3">
+          <h2 style="font:500 25px Georgia,serif;margin:0 0 4px">Add a custom cake order</h2>
+          <p class="hint">For orders confirmed through WhatsApp or Instagram. New orders are created as pending and unpaid.</p>
+          <form id="customOrderForm">
+            <div class="customer-grid">
+              <div><label for="customName">Customer name</label><input id="customName" maxlength="80" required></div>
+              <div><label for="customPhone">WhatsApp number</label><input id="customPhone" type="tel" placeholder="01X-XXXXXXX" required></div>
+              <div><label for="customDate">Collection / delivery date</label><input id="customDate" type="date" min="2026-11-21" required></div>
+            </div>
+            <div class="customer-grid">
+              <div><label for="customTime">Time</label><input id="customTime" placeholder="e.g. 10:00am – 11:00am" maxlength="40" required></div>
+              <div><label for="customMethod">Fulfilment</label><select id="customMethod"><option>Self Collection</option><option>Grab Express</option></select></div>
+              <div><label for="customPoint">Collection point</label><select id="customPoint"><option>Sin Chooi Hong Kopitiam</option><option>Taman Pulasan</option></select></div>
+            </div>
+            <label for="customAddress">Delivery address (Grab Express only)</label><input id="customAddress" maxlength="500" placeholder="Leave blank for self collection">
+            <label for="customDescription">Custom cake description</label><input id="customDescription" maxlength="500" placeholder="e.g. 6-inch chocolate cake, floral design, custom message" required>
+            <div class="customer-grid">
+              <div><label for="customQty">Quantity</label><input id="customQty" type="number" min="1" max="20" value="1" required></div>
+              <div><label for="customSubtotal">Agreed subtotal (RM)</label><input id="customSubtotal" type="number" min="0.01" max="10000" step="0.01" required></div>
+              <div><label for="customNotes">Additional notes (optional)</label><input id="customNotes" maxlength="1000"></div>
+            </div>
+            <label style="display:flex;align-items:flex-start;gap:9px;font-weight:500"><input id="customRewardsOptIn" type="checkbox" style="width:18px;height:18px;margin:1px 0 0"> <span>Customer has agreed to join Sweet Circle (optional). Only tick with their consent.</span></label>
+            <div class="actions" style="margin-top:16px"><button id="createCustomOrder" type="submit">Create custom order</button><button id="cancelCustomOrder" class="secondary" type="button">Cancel</button></div>
+            <div id="customOrderMessage" class="message" role="status"></div>
+          </form>
+        </section>
+        <div class="toolbar"><div><strong>Order list</strong><div class="hint">Latest 500 orders · amounts in RM</div></div><input id="orderSearch" type="search" placeholder="Search order, customer or phone"></div><div><strong>Orders</strong><div class="hint">Latest 500 orders · amounts in RM</div></div><input id="orderSearch" type="search" placeholder="Search order, customer or phone"></div>
         <div class="table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Collection / delivery</th><th>Total</th><th>Payment</th><th>Status & actions</th></tr></thead><tbody id="ordersBody"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody></table></div>
       </section>
       <section id="customersTab" class="panel hidden">
@@ -194,6 +224,51 @@
     await loadDashboard();
     if (message) alert(message);
   }
+
+  $("toggleCustomOrder").addEventListener("click", () => {
+    $("customOrderPanel").classList.toggle("hidden");
+  });
+  $("cancelCustomOrder").addEventListener("click", () => {
+    $("customOrderPanel").classList.add("hidden");
+    $("customOrderForm").reset();
+    showMessage($("customOrderMessage"), "");
+  });
+  $("customMethod").addEventListener("change", () => {
+    const grab = $("customMethod").value === "Grab Express";
+    $("customPoint").disabled = grab;
+    $("customAddress").required = grab;
+  });
+  $("customOrderForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const button = $("createCustomOrder");
+    button.disabled = true;
+    showMessage($("customOrderMessage"), "Creating custom order…");
+    try {
+      const result = await adminRequest({
+        action: "create_custom_order",
+        name: $("customName").value.trim(),
+        phone: $("customPhone").value.trim(),
+        date: $("customDate").value,
+        time: $("customTime").value.trim(),
+        method: $("customMethod").value,
+        collectionPoint: $("customPoint").value,
+        address: $("customAddress").value.trim(),
+        description: $("customDescription").value.trim(),
+        qty: Number($("customQty").value),
+        subtotal: Number($("customSubtotal").value),
+        notes: $("customNotes").value.trim(),
+        rewardsOptIn: $("customRewardsOptIn").checked
+      });
+      $("customOrderForm").reset();
+      $("customOrderPanel").classList.add("hidden");
+      await loadDashboard();
+      alert("Custom order created: " + result.order.order_number + "\nIt is pending and unpaid. Mark it paid and completed when appropriate to award its Stamp.");
+    } catch (error) {
+      showMessage($("customOrderMessage"), error.message, "error");
+    } finally {
+      button.disabled = false;
+    }
+  });
 
   $("loginForm").addEventListener("submit", async (event) => {
     event.preventDefault();
