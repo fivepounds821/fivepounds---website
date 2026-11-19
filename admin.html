@@ -12,9 +12,9 @@
     .shell{max-width:1440px;margin:auto;padding:28px 22px 60px}.top{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:26px}.brand{font-size:13px;letter-spacing:.2em;font-weight:800}.brand span{display:block;font-size:11px;letter-spacing:.12em;color:var(--muted);font-weight:500;margin-top:3px}
     h1{font-family:Georgia,serif;font-weight:500;font-size:clamp(30px,4vw,46px);margin:0 0 4px}.sub{color:var(--muted);margin:0}.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 8px 28px #4c2d1b08}
     .login{max-width:460px;margin:8vh auto}.login p{color:var(--muted)}label{display:block;font-size:13px;font-weight:650;margin:14px 0 6px}input,select{width:100%;border:1px solid var(--line);border-radius:9px;padding:11px 12px;background:#fff;color:var(--ink)}.login button{width:100%;margin-top:16px}.hint{font-size:12px;color:var(--muted)}.message{margin-top:14px;font-size:13px}.error{color:var(--red)}.success{color:var(--green)}
-    .hidden{display:none!important}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:24px 0}.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}.stat small{display:block;color:var(--muted);font-size:12px}.stat strong{font-size:27px;font-weight:650;display:block;margin-top:5px}
+    .hidden{display:none!important}.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin:24px 0}.insight-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-top:14px}.chart-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;min-width:0}.chart-card h2{font:500 22px Georgia,serif;margin:0 0 4px}.chart-sub{font-size:12px;color:var(--muted);margin-bottom:14px}.bar-chart{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;align-items:end;min-height:170px}.bar-column{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:7px;min-width:0}.bar-value{font-size:10px;color:var(--muted);white-space:nowrap}.bar-track{height:112px;width:100%;max-width:38px;background:#f4ebe5;border-radius:8px 8px 3px 3px;display:flex;align-items:flex-end;overflow:hidden}.bar-fill{width:100%;min-height:2px;background:#a87958;border-radius:8px 8px 3px 3px}.bar-month{font-size:11px;color:var(--muted)}.rank-list{display:grid;gap:13px}.rank-heading{display:flex;justify-content:space-between;gap:10px;font-size:12px;margin-bottom:5px}.rank-heading span{overflow-wrap:anywhere}.rank-heading strong{white-space:nowrap}.rank-track{height:7px;border-radius:99px;background:#f4ebe5;overflow:hidden}.rank-fill{height:100%;border-radius:99px;background:#a87958}.dashboard-note{margin-top:14px;padding:12px 14px;border-radius:10px;background:#faf7f3;color:var(--muted);font-size:12px}.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}.stat small{display:block;color:var(--muted);font-size:12px}.stat strong{font-size:27px;font-weight:650;display:block;margin-top:5px}
     .tabs{display:flex;gap:8px;margin:22px 0 14px;flex-wrap:wrap}.tabs button{background:var(--soft);color:var(--ink)}.tabs button.active{background:var(--ink);color:#fff}.toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}.toolbar input{max-width:340px}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff}table{border-collapse:collapse;width:100%;min-width:980px;font-size:13px}th,td{text-align:left;padding:12px 13px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:#faf7f3;position:sticky;top:0}tr:last-child td{border-bottom:0}.muted{color:var(--muted)}.order-title{font-weight:750}.small{font-size:12px}.pill{display:inline-block;padding:3px 8px;border-radius:99px;background:var(--soft);font-size:11px}.pill.good{background:#e8f2eb;color:var(--green)}.pill.warn{background:#f8eee2;color:#8b5928}.actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.actions select{min-width:118px;padding:7px;font-size:12px}.actions button{padding:7px 9px;font-size:12px}.secondary{background:var(--soft);color:var(--ink)}.customer-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.customer{border:1px solid var(--line);border-radius:12px;padding:15px;background:#fff}.customer strong{display:block}.empty{padding:30px;text-align:center;color:var(--muted)}.foot{margin-top:18px;color:var(--muted);font-size:12px}
-    @media(max-width:760px){.shell{padding:18px 13px 40px}.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.stat{padding:14px}.stat strong{font-size:23px}.top{align-items:flex-start}.customer-grid{grid-template-columns:1fr}.panel{padding:15px}.toolbar{align-items:stretch;flex-direction:column}.toolbar input{max-width:none}}
+    @media(max-width:980px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}.insight-grid{grid-template-columns:1fr}}@media(max-width:760px){.shell{padding:18px 13px 40px}.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.stat{padding:14px}.stat strong{font-size:23px}.top{align-items:flex-start}.customer-grid{grid-template-columns:1fr}.panel{padding:15px}.toolbar{align-items:stretch;flex-direction:column}.toolbar input{max-width:none}.chart-card{padding:14px}.bar-chart{gap:5px}.bar-value{font-size:9px}}
   </style>
 </head>
 <body>
@@ -38,19 +38,36 @@
 
     <section id="dashboard" class="hidden">
       <div>
-        <h1>Order overview.</h1>
-        <p class="sub">Manage weekend orders, payment confirmations and Sweet Circle stamps.</p>
-      </div>
-      <div class="stats">
-        <div class="stat"><small>All orders</small><strong id="statOrders">0</strong></div>
-        <div class="stat"><small>Awaiting action</small><strong id="statPending">0</strong></div>
-        <div class="stat"><small>Completed & paid</small><strong id="statCompleted">0</strong></div>
-        <div class="stat"><small>Customer profiles</small><strong id="statCustomers">0</strong></div>
+        <h1>Business overview.</h1>
+        <p class="sub">A snapshot of FIVEPOUNDS sales, orders and customers.</p>
       </div>
       <div class="tabs">
-        <button class="active" data-tab="orders" type="button">Orders</button>
+        <button class="active" data-tab="business" type="button">Business Dashboard</button>
+        <button data-tab="orders" type="button">Orders</button>
         <button data-tab="customers" type="button">Customers & stamps</button>
       </div>
+      <section id="businessTab">
+        <div class="stats">
+          <div class="stat"><small>Completed revenue</small><strong id="statRevenue">RM0.00</strong></div>
+          <div class="stat"><small>Orders loaded</small><strong id="statOrders">0</strong></div>
+          <div class="stat"><small>Awaiting action</small><strong id="statPending">0</strong></div>
+          <div class="stat"><small>Completed & paid</small><strong id="statCompleted">0</strong></div>
+          <div class="stat"><small>Customer profiles</small><strong id="statCustomers">0</strong></div>
+        </div>
+        <div class="insight-grid">
+          <section class="chart-card">
+            <h2>Revenue trend</h2>
+            <div class="chart-sub">Completed and paid orders · last 6 months · based on payment date</div>
+            <div id="revenueChart" class="bar-chart"><div class="empty">Loading insights…</div></div>
+          </section>
+          <section class="chart-card">
+            <h2>Best-selling products</h2>
+            <div class="chart-sub">Quantity from completed and paid orders</div>
+            <div id="topProducts" class="rank-list"><div class="empty">Loading insights…</div></div>
+          </section>
+        </div>
+        <div class="dashboard-note">Revenue is not net profit. These first-version insights use the latest 500 orders currently loaded in Admin; full historical reporting will be added as the data grows.</div>
+      </section>
       <section id="ordersTab" class="panel">
         <div class="toolbar">
           <div><strong>Orders</strong><div class="hint">Latest 500 orders · amounts in RM</div></div>
@@ -167,6 +184,7 @@
       dashboardData = data;
       showDashboard(data.adminEmail);
       renderStats();
+      renderBusinessInsights();
       renderOrders();
       renderCustomers();
     } catch (error) {
@@ -179,10 +197,63 @@
   }
   function renderStats() {
     const orders = dashboardData.orders || [];
+    const completedPaid = orders.filter(o => o.status === "completed" && o.paid);
+    const completedRevenue = completedPaid.reduce((sum, order) => sum + Number(order.amount_due || 0), 0);
+    $("statRevenue").textContent = money(completedRevenue);
     $("statOrders").textContent = orders.length;
     $("statPending").textContent = orders.filter(o => !["completed","cancelled"].includes(o.status)).length;
-    $("statCompleted").textContent = orders.filter(o => o.status === "completed" && o.paid).length;
+    $("statCompleted").textContent = completedPaid.length;
     $("statCustomers").textContent = (dashboardData.customers || []).length;
+  }
+  function renderBusinessInsights() {
+    const orders = (dashboardData.orders || []).filter(o => o.status === "completed" && o.paid);
+    const nowParts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit"
+    }).formatToParts(new Date());
+    const currentYear = Number(nowParts.find(p => p.type === "year").value);
+    const currentMonth = Number(nowParts.find(p => p.type === "month").value);
+    const months = [];
+    for (let offset = 5; offset >= 0; offset--) {
+      const date = new Date(Date.UTC(currentYear, currentMonth - 1 - offset, 1));
+      const key = date.getUTCFullYear() + "-" + String(date.getUTCMonth() + 1).padStart(2, "0");
+      months.push({
+        key,
+        label: new Intl.DateTimeFormat("en-MY", { month: "short", timeZone: "UTC" }).format(date),
+        total: 0
+      });
+    }
+    const monthMap = new Map(months.map(m => [m.key, m]));
+    for (const order of orders) {
+      if (!order.paid_at) continue;
+      const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit"
+      }).formatToParts(new Date(order.paid_at));
+      const key = parts.find(p => p.type === "year").value + "-" + parts.find(p => p.type === "month").value;
+      if (monthMap.has(key)) monthMap.get(key).total += Number(order.amount_due || 0);
+    }
+    const maxRevenue = Math.max(1, ...months.map(m => m.total));
+    $("revenueChart").innerHTML = months.map(m => {
+      const height = m.total > 0 ? Math.max(5, Math.round(m.total / maxRevenue * 100)) : 2;
+      return '<div class="bar-column"><div class="bar-value">' + money(m.total) + '</div><div class="bar-track"><div class="bar-fill" style="height:' + height + '%"></div></div><span class="bar-month">' + escapeHtml(m.label) + '</span></div>';
+    }).join("");
+    const productTotals = new Map();
+    for (const order of orders) {
+      for (const item of (Array.isArray(order.items) ? order.items : [])) {
+        const product = String(item.product || "Other").trim();
+        const size = String(item.size || "").trim();
+        const label = product === "Custom Cake" && size ? product + " · " + size : product;
+        productTotals.set(label, (productTotals.get(label) || 0) + Math.max(0, Number(item.qty) || 0));
+      }
+    }
+    const top = [...productTotals.entries()].sort((a,b) => b[1] - a[1]).slice(0,5);
+    if (!top.length) {
+      $("topProducts").innerHTML = '<div class="empty">No completed and paid product sales yet.</div>';
+      return;
+    }
+    const maxQty = Math.max(1, ...top.map(item => item[1]));
+    $("topProducts").innerHTML = top.map(([name, qty]) =>
+      '<div><div class="rank-heading"><span>' + escapeHtml(name) + '</span><strong>' + qty + '</strong></div><div class="rank-track"><div class="rank-fill" style="width:' + (qty / maxQty * 100) + '%"></div></div></div>'
+    ).join("");
   }
   function customerStamps(customerId) {
     const customer = (dashboardData.customers || []).find(c => c.id === customerId);
@@ -463,6 +534,7 @@
 
   document.querySelectorAll("[data-tab]").forEach(button => button.addEventListener("click", () => {
     document.querySelectorAll("[data-tab]").forEach(b => b.classList.toggle("active", b === button));
+    $("businessTab").classList.toggle("hidden", button.dataset.tab !== "business");
     $("ordersTab").classList.toggle("hidden", button.dataset.tab !== "orders");
     $("customersTab").classList.toggle("hidden", button.dataset.tab !== "customers");
   }));
