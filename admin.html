@@ -50,7 +50,7 @@
       </div>
       <section id="businessTab">
         <div class="stats">
-          <div class="stat"><small>Completed revenue</small><strong id="statRevenue">RM0.00</strong></div>
+          <div class="stat"><small>Total sales revenue</small><strong id="statRevenue">RM0.00</strong></div>
           <div class="stat"><small>Orders loaded</small><strong id="statOrders">0</strong></div>
           <div class="stat"><small>Awaiting action</small><strong id="statPending">0</strong></div>
           <div class="stat"><small>Completed & paid</small><strong id="statCompleted">0</strong></div>
@@ -68,7 +68,7 @@
             <div id="topProducts" class="rank-list"><div class="empty">Loading insights…</div></div>
           </section>
         </div>
-        <div class="dashboard-note">Revenue is not net profit. These first-version insights use the latest 500 orders currently loaded in Admin; full historical reporting will be added as the data grows.</div>
+        <div class="dashboard-note">Total sales revenue includes completed and paid website orders, paid historical orders, and recorded coffee shop sales. It is not net profit.</div>
       </section>
       <section id="ordersTab" class="panel">
         <div class="toolbar">
@@ -327,10 +327,12 @@
   function renderStats() {
     const orders = dashboardData.orders || [];
     const historical = dashboardData.historicalOrders || [];
+    const coffeeSales = dashboardData.coffeeShopSales || [];
     const completedPaid = orders.filter(o => o.status === "completed" && o.paid);
     const historicalDonePaid = historical.filter(o => String(o.status || "").toLowerCase() === "done" && o.paid);
     const completedRevenue = completedPaid.reduce((sum, order) => sum + Number(order.amount_due || 0), 0)
-      + historicalDonePaid.reduce((sum, order) => sum + Number(order.total || 0), 0);
+      + historicalDonePaid.reduce((sum, order) => sum + Number(order.total || 0), 0)
+      + coffeeSales.reduce((sum, sale) => sum + Number(sale.quantity_sold || 0) * Number(sale.unit_price || 0), 0);
     $("statRevenue").textContent = money(completedRevenue);
     $("statOrders").textContent = orders.length + historical.length;
     $("statPending").textContent = orders.filter(o => !["completed","cancelled"].includes(o.status)).length;
@@ -340,6 +342,7 @@
   function renderBusinessInsights() {
     const orders = (dashboardData.orders || []).filter(o => o.status === "completed" && o.paid);
     const historical = (dashboardData.historicalOrders || []).filter(o => String(o.status || "").toLowerCase() === "done" && o.paid);
+    const coffeeSales = dashboardData.coffeeShopSales || [];
     const nowParts = new Intl.DateTimeFormat("en-CA", {
       timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit"
     }).formatToParts(new Date());
@@ -368,6 +371,10 @@
       const key = String(order.order_date || "").slice(0, 7);
       if (monthMap.has(key)) monthMap.get(key).total += Number(order.total || 0);
     }
+    for (const sale of coffeeSales) {
+      const key = String(sale.sales_date || "").slice(0, 7);
+      if (monthMap.has(key)) monthMap.get(key).total += Number(sale.quantity_sold || 0) * Number(sale.unit_price || 0);
+    }
     const maxRevenue = Math.max(1, ...months.map(m => m.total));
     $("revenueChart").innerHTML = months.map(m => {
       const height = m.total > 0 ? Math.max(5, Math.round(m.total / maxRevenue * 100)) : 2;
@@ -387,6 +394,11 @@
         const label = String(item.product || "Other").trim();
         productTotals.set(label, (productTotals.get(label) || 0) + Math.max(0, Number(item.quantity ?? item.qty) || 0));
       }
+    }
+    for (const sale of coffeeSales) {
+      const product = (dashboardData.products || []).find(p => p.id === sale.product_id);
+      const label = product ? String(product.name || "Coffee Shop Sales").trim() : "Coffee Shop Sales";
+      productTotals.set(label, (productTotals.get(label) || 0) + Math.max(0, Number(sale.quantity_sold) || 0));
     }
     const top = [...productTotals.entries()].sort((a,b) => b[1] - a[1]).slice(0,5);
     if (!top.length) {
@@ -911,7 +923,9 @@
     ).reduce((sum,o)=>sum+Number(o.amount_due||0),0)
       + (dashboardData.historicalOrders || []).filter(o =>
         String(o.status || "").toLowerCase() === "done" && o.paid && String(o.order_date || "").slice(0,7) === month
-      ).reduce((sum,o)=>sum+Number(o.total||0),0);
+      ).reduce((sum,o)=>sum+Number(o.total||0),0)
+      + (dashboardData.coffeeShopSales || []).filter(s => String(s.sales_date || "").slice(0,7) === month)
+        .reduce((sum,s)=>sum+Number(s.quantity_sold||0)*Number(s.unit_price||0),0);
     const spent = expenses.reduce((sum,e)=>sum+Number(e.amount||0),0);
     $("financeRevenue").textContent = money(revenue);
     $("financeExpenses").textContent = money(spent);
