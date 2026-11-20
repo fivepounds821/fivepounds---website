@@ -463,7 +463,7 @@
       '<div class="small muted">Last order: ' + escapeHtml(c.last_order_at ? new Date(c.last_order_at).toLocaleDateString("en-MY",{timeZone:"Asia/Kuala_Lumpur"}) : "—") + '</div>' +
       '<div class="small">' + (c.rewards_opt_in ? '<span class="pill good">Sweet Circle member</span>' : '<span class="pill">Not enrolled</span>') + ' ' +
       (c.marketing_opt_in ? '<span class="pill good">Marketing opt-in</span>' : '<span class="pill">No marketing</span>') + '</div>' +
-      (c.rewards_opt_in ? '<div class="actions" style="margin-top:12px"><button type="button" class="secondary" data-stamp-card="' + escapeHtml(c.id) + '">Download digital stamp card</button></div>' : '') +
+      (c.rewards_opt_in ? '<div class="actions" style="margin-top:12px"><button type="button" class="secondary" data-stamp-card="' + escapeHtml(c.id) + '">Download Sweet Circle card</button></div>' : '') +
       '</article>'
     ).join("") : '<div class="empty">No matching customers yet.</div>';
   }
@@ -473,6 +473,8 @@
   }
 
   // Creates a personalized PNG locally in the browser. No customer data is sent to another service.
+  // Creates a personalized 4:3 Sweet Circle PNG locally in the browser.
+  // Customer data stays in this page and is not sent to another service.
   function downloadDigitalStampCard(customerId) {
     const customer = (dashboardData.customers || []).find(c => c.id === customerId);
     if (!customer || !customer.rewards_opt_in) {
@@ -482,99 +484,102 @@
     const stamps = Math.max(0, Number(customer.stamps_balance || 0));
     const progress = Math.min(stamps, 5);
     const canvas = document.createElement("canvas");
-    canvas.width = 1080;
-    canvas.height = 1350;
+    canvas.width = 1200;
+    canvas.height = 900;
     const ctx = canvas.getContext("2d");
     if (!ctx) {
       alert("Your browser could not create the stamp card. Please try another browser.");
       return;
     }
-    const roundedRect = (x, y, w, h, r, fill, stroke) => {
+    const roundedRect = (x, y, w, h, r, fill, stroke, lineWidth = 3) => {
       ctx.beginPath();
       ctx.roundRect(x, y, w, h, r);
       if (fill) { ctx.fillStyle = fill; ctx.fill(); }
-      if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 3; ctx.stroke(); }
+      if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lineWidth; ctx.stroke(); }
     };
-    const heart = (x, y, size, color) => {
+    const drawMiniLogo = (x, y, active) => {
       ctx.save();
-      ctx.translate(x, y);
-      ctx.scale(size / 100, size / 100);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = active ? "#fff7ed" : "#a98b72";
+      ctx.strokeStyle = active ? "#6c3d26" : "#e8d9c9";
+      ctx.lineWidth = active ? 1.5 : 0.8;
+      ctx.font = 'italic 700 23px "Brush Script MT", "Segoe Script", cursive';
+      ctx.strokeText("Fivepounds", x, y - 2);
+      ctx.fillText("Fivepounds", x, y - 2);
+      ctx.font = "700 6px Arial, sans-serif";
+      ctx.letterSpacing = "1.2px";
+      ctx.fillText("THE ART OF CHEESEMAKING", x, y + 17);
+      ctx.restore();
+    };
+    const drawPostageStamp = (cx, cy, active) => {
+      const w = 154, h = 174, teeth = 15, depth = 7;
+      const left = cx - w / 2, top = cy - h / 2;
+      ctx.save();
       ctx.beginPath();
-      ctx.moveTo(0, 30);
-      ctx.bezierCurveTo(-85, -25, -45, -75, 0, -35);
-      ctx.bezierCurveTo(45, -75, 85, -25, 0, 30);
+      const steps = teeth * 4;
+      for (let i = 0; i <= steps; i++) {
+        const side = Math.floor(i / teeth);
+        const t = (i % teeth) / teeth;
+        let x, y, nx, ny;
+        if (side === 0) { x = left + t*w; y = top; nx = left + (t+1/teeth)*w; ny = top; }
+        else if (side === 1) { x = left+w; y = top+t*h; nx = left+w; ny = top+(t+1/teeth)*h; }
+        else if (side === 2) { x = left+w-t*w; y = top+h; nx = left+w-(t+1/teeth)*w; ny = top+h; }
+        else { x = left; y = top+h-t*h; nx = left; ny = top+h-(t+1/teeth)*h; }
+        if (i === 0) ctx.moveTo(x,y);
+        const dx = nx-x, dy = ny-y, len = Math.hypot(dx,dy) || 1;
+        const mx = (x+nx)/2 + (side===0 ? 0 : side===1 ? depth : side===2 ? 0 : -depth);
+        const my = (y+ny)/2 + (side===0 ? -depth : side===1 ? 0 : side===2 ? depth : 0);
+        ctx.quadraticCurveTo(mx,my,nx,ny);
+      }
       ctx.closePath();
-      ctx.fillStyle = color;
+      ctx.fillStyle = active ? "#b77e55" : "#eadccc";
       ctx.fill();
+      ctx.strokeStyle = active ? "#8c5c3d" : "#d7c2ad";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.setLineDash([3,4]);
+      ctx.strokeStyle = active ? "#f4d6b8" : "#cbb39a";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(left+12,top+12,w-24,h-24);
+      ctx.setLineDash([]);
+      drawMiniLogo(cx,cy,active);
       ctx.restore();
     };
 
     ctx.fillStyle = "#f5ebdd";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    roundedRect(42, 42, 996, 1266, 34, "#fbf6ef", "#c9ad93");
+    roundedRect(28, 28, 1144, 844, 30, "#fbf6ef", "#c9ad93", 3);
+
     ctx.textAlign = "center";
-    ctx.fillStyle = "#76543d";
-    ctx.font = "700 27px Arial, sans-serif";
-    ctx.letterSpacing = "7px";
-    ctx.fillText("FIVEPOUNDS", 540, 145);
-    ctx.letterSpacing = "0px";
     ctx.fillStyle = "#543b2d";
     ctx.font = "italic 78px Georgia, serif";
-    ctx.fillText("Sweet Circle", 540, 260);
-    ctx.fillStyle = "#8c6d56";
-    ctx.font = "30px Arial, sans-serif";
-    ctx.fillText("A little sweetness, a little reward.", 540, 320);
+    ctx.fillText("Sweet Circle", 600, 180);
+
     ctx.strokeStyle = "#d7c3ac";
     ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(150, 385); ctx.lineTo(930, 385); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(155, 235); ctx.lineTo(1045, 235); ctx.stroke();
 
-    ctx.fillStyle = "#76543d";
-    ctx.font = "28px Arial, sans-serif";
-    ctx.fillText("THIS STAMP CARD BELONGS TO", 540, 470);
+    const customerName = String(customer.display_name || "Sweet Circle Member");
     ctx.fillStyle = "#543b2d";
     ctx.font = "bold 48px Georgia, serif";
-    const customerName = String(customer.display_name || "Sweet Circle Member");
-    ctx.fillText(customerName.length > 26 ? customerName.slice(0, 24) + "…" : customerName, 540, 545);
-
-    ctx.fillStyle = "#543b2d";
-    ctx.font = "42px Georgia, serif";
-    ctx.fillText("Your Stamp Collection", 540, 665);
-    const startX = 270, gap = 135, y = 805;
-    for (let i = 0; i < 5; i++) {
-      const x = startX + i * gap;
-      ctx.beginPath();
-      ctx.arc(x, y, 48, 0, Math.PI * 2);
-      ctx.fillStyle = i < progress ? "#a87958" : "#e6d8c8";
-      ctx.fill();
-      if (i < progress) heart(x, y + 2, 48, "#fffaf4");
-      else {
-        ctx.strokeStyle = "#b99f87";
-        ctx.lineWidth = 4;
-        ctx.beginPath(); ctx.arc(x, y, 18, 0, Math.PI * 2); ctx.stroke();
-      }
+    let nameSize = 48;
+    while (ctx.measureText(customerName).width > 880 && nameSize > 30) {
+      nameSize -= 2;
+      ctx.font = "bold " + nameSize + "px Georgia, serif";
     }
+    ctx.fillText(customerName, 600, 330);
+
+    const stampGap = 196;
+    const firstX = 600 - stampGap * 2;
+    for (let i = 0; i < 5; i++) {
+      drawPostageStamp(firstX + i * stampGap, 545, i < progress);
+    }
+
     ctx.fillStyle = "#543b2d";
     ctx.font = "bold 58px Georgia, serif";
-    ctx.fillText(progress + " / 5 Stamps", 540, 930);
+    ctx.fillText(progress + " / 5 Stamps", 600, 735);
 
-    roundedRect(150, 990, 780, 180, 24, "#fffaf4", "#e3d2c1");
-    ctx.fillStyle = "#76543d";
-    ctx.font = "bold 54px Georgia, serif";
-    ctx.fillText(stamps >= 5 ? "RM5 REWARD UNLOCKED" : "RM5 OFF", 540, 1055);
-    ctx.fillStyle = "#76543d";
-    ctx.font = "25px Arial, sans-serif";
-    ctx.fillText(stamps >= 5 ? "Redeem 5 stamps on your next order" : "Collect 5 stamps to unlock this reward", 540, 1105);
-    ctx.font = "23px Arial, sans-serif";
-    ctx.fillText("Minimum order subtotal: RM40", 540, 1140);
-
-    ctx.fillStyle = "#8c6d56";
-    ctx.font = "24px Arial, sans-serif";
-    ctx.fillText("Total stamp balance: " + stamps, 540, 1200);
-    ctx.font = "italic 25px Georgia, serif";
-    ctx.fillText("Thank you for being part of our Sweet Circle ♡", 540, 1250);
-
-    // Generate and trigger the download synchronously within the user's click.
-    // Safari may block downloads triggered later from the asynchronous toBlob callback.
     try {
       const dataUrl = canvas.toDataURL("image/png");
       const link = document.createElement("a");
