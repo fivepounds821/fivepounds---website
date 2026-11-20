@@ -472,13 +472,22 @@
     if (message) alert(message);
   }
 
-  // Creates a personalized 4:3 Sweet Circle stamp card locally in the browser.
+  // Preload the official FIVEPOUNDS wordmark for crisp, branded stamp artwork.
+  const sweetCircleLogo = new Image();
+  sweetCircleLogo.src = "./assets/fivepounds-stamp-logo.webp";
+
+  // Creates a personalized 4:3 Sweet Circle card locally; no customer data leaves this browser.
   function downloadDigitalStampCard(customerId) {
     const customer = (dashboardData.customers || []).find(c => c.id === customerId);
     if (!customer || !customer.rewards_opt_in) {
       alert("This customer is not enrolled in Sweet Circle.");
       return;
     }
+    if (!sweetCircleLogo.complete || !sweetCircleLogo.naturalWidth) {
+      alert("The FIVEPOUNDS logo is still loading. Please try again in a moment.");
+      return;
+    }
+
     const stamps = Math.max(0, Number(customer.stamps_balance || 0));
     const progress = Math.min(stamps, 5);
     const canvas = document.createElement("canvas");
@@ -489,82 +498,108 @@
       alert("Your browser could not create the stamp card. Please try another browser.");
       return;
     }
-    const roundedRect = (x, y, w, h, r, fill, stroke, lineWidth = 3) => {
-      ctx.beginPath(); ctx.roundRect(x, y, w, h, r);
+
+    const paper = "#f5ecdf";
+    const ink = "#543b2d";
+    const muted = "#8b674e";
+    const roundedRect = (x, y, w, h, r, fill, stroke, width = 2) => {
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, r);
       if (fill) { ctx.fillStyle = fill; ctx.fill(); }
-      if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lineWidth; ctx.stroke(); }
-    };
-    const drawHeart = (x, y, size, color) => {
-      ctx.save(); ctx.translate(x, y); ctx.scale(size / 100, size / 100);
-      ctx.beginPath(); ctx.moveTo(0, 30);
-      ctx.bezierCurveTo(-85, -25, -45, -75, 0, -35);
-      ctx.bezierCurveTo(45, -75, 85, -25, 0, 30);
-      ctx.closePath(); ctx.fillStyle = color; ctx.fill(); ctx.restore();
-    };
-    const drawPostageStamp = (x, y, size, filled) => {
-      const bg = filled ? "#a87958" : "#f1e5d7";
-      const ink = filled ? "#fffaf4" : "#8b674e";
-      // Perforated postage edges.
-      ctx.fillStyle = bg;
-      ctx.fillRect(x + 10, y, size - 20, size);
-      ctx.fillRect(x, y + 10, size, size - 20);
-      for (let p = 14; p < size - 8; p += 22) {
-        ctx.beginPath(); ctx.arc(x + p, y + 10, 10, Math.PI, 0); ctx.fill();
-        ctx.beginPath(); ctx.arc(x + p, y + size - 10, 10, 0, Math.PI); ctx.fill();
-        ctx.beginPath(); ctx.arc(x + 10, y + p, 10, -Math.PI/2, Math.PI/2); ctx.fill();
-        ctx.beginPath(); ctx.arc(x + size - 10, y + p, 10, Math.PI/2, -Math.PI/2); ctx.fill();
-      }
-      ctx.strokeStyle = filled ? "#8d6548" : "#d5b99d";
-      ctx.lineWidth = 2;
-      ctx.setLineDash([3, 5]);
-      ctx.strokeRect(x + 18, y + 18, size - 36, size - 36);
-      ctx.setLineDash([]);
-      // FIVEPOUNDS-inspired heart mark and wordmark inside every stamp.
-      drawHeart(x + size/2, y + 78, 40, ink);
-      ctx.strokeStyle = ink; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(x + size/2 - 38, y + 105);
-      ctx.quadraticCurveTo(x + size/2, y + 132, x + size/2 + 38, y + 105);
-      ctx.stroke();
-      ctx.textAlign = "center"; ctx.fillStyle = ink;
-      ctx.font = "700 18px Arial, sans-serif";
-      ctx.letterSpacing = "2px";
-      ctx.fillText("FIVEPOUNDS", x + size/2, y + 155);
-      ctx.letterSpacing = "0px";
+      if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = width; ctx.stroke(); }
     };
 
-    ctx.fillStyle = "#f5ebdd";
+    function drawLogo(x, y, width, height, tint) {
+      const mark = document.createElement("canvas");
+      mark.width = 520;
+      mark.height = 146;
+      const markCtx = mark.getContext("2d");
+      markCtx.drawImage(sweetCircleLogo, 0, 0, mark.width, mark.height);
+      markCtx.globalCompositeOperation = "source-in";
+      markCtx.fillStyle = tint;
+      markCtx.fillRect(0, 0, mark.width, mark.height);
+      ctx.drawImage(mark, x, y, width, height);
+    }
+
+    function drawPostageStamp(x, y, size, filled) {
+      const stampPaper = filled ? "#a87958" : "#f3e7d8";
+      const stampInk = filled ? "#fff8ef" : "#79563f";
+      const edge = filled ? "#966d50" : "#d7bfa6";
+
+      ctx.save();
+      ctx.shadowColor = "rgba(72, 48, 32, 0.14)";
+      ctx.shadowBlur = 13;
+      ctx.shadowOffsetY = 5;
+      ctx.fillStyle = stampPaper;
+      ctx.fillRect(x + 7, y + 7, size - 14, size - 14);
+      ctx.restore();
+
+      // Inward perforations reveal the card paper and form a true postage edge.
+      ctx.fillStyle = paper;
+      const holeRadius = 6.2;
+      const step = 19;
+      for (let p = 17; p <= size - 17; p += step) {
+        for (const [cx, cy] of [
+          [x + p, y + 7], [x + p, y + size - 7],
+          [x + 7, y + p], [x + size - 7, y + p]
+        ]) {
+          ctx.beginPath();
+          ctx.arc(cx, cy, holeRadius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      roundedRect(x + 17, y + 17, size - 34, size - 34, 3, null, edge, 1.5);
+      roundedRect(x + 22, y + 22, size - 44, size - 44, 2, null,
+        filled ? "rgba(255,248,239,.30)" : "rgba(121,86,63,.18)", 1);
+
+      // Use the actual supplied FIVEPOUNDS logo, tinted to match each stamp.
+      const logoWidth = size * 0.70;
+      const logoHeight = logoWidth * 146 / 520;
+      drawLogo(x + (size - logoWidth) / 2, y + (size - logoHeight) / 2,
+        logoWidth, logoHeight, stampInk);
+    }
+
+    ctx.fillStyle = paper;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    roundedRect(38, 38, 1124, 824, 34, "#fbf6ef", "#c9ad93", 3);
+    roundedRect(38, 38, 1124, 824, 34, "#fcf8f3", "#c9ad93", 3);
+
     ctx.textAlign = "center";
     ctx.fillStyle = "#76543d";
     ctx.font = "700 27px Arial, sans-serif";
     ctx.letterSpacing = "7px";
     ctx.fillText("FIVEPOUNDS", 600, 142);
     ctx.letterSpacing = "0px";
-    ctx.fillStyle = "#543b2d";
+
+    ctx.fillStyle = ink;
     ctx.font = "italic 82px Georgia, serif";
     ctx.fillText("Sweet Circle", 600, 260);
-    ctx.strokeStyle = "#d7c3ac"; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(150, 320); ctx.lineTo(1050, 320); ctx.stroke();
+
+    ctx.strokeStyle = "#d7c3ac";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(150, 320);
+    ctx.lineTo(1050, 320);
+    ctx.stroke();
 
     const customerName = String(customer.display_name || "Sweet Circle Member");
-    ctx.fillStyle = "#543b2d";
-    ctx.font = "bold 54px Georgia, serif";
-    ctx.fillText(customerName.length > 28 ? customerName.slice(0, 26) + "…" : customerName, 600, 425);
+    ctx.fillStyle = ink;
+    ctx.font = customerName.length > 25 ? "bold 46px Georgia, serif" : "bold 54px Georgia, serif";
+    ctx.fillText(customerName.length > 30 ? customerName.slice(0, 28) + "…" : customerName, 600, 425);
 
-    const stampSize = 174;
-    const gap = 34;
-    const totalWidth = stampSize * 5 + gap * 4;
-    const startX = (1200 - totalWidth) / 2;
+    const stampSize = 170;
+    const stampGap = 34;
+    const rowWidth = stampSize * 5 + stampGap * 4;
+    const startX = (canvas.width - rowWidth) / 2;
     const stampY = 535;
     for (let i = 0; i < 5; i++) {
-      drawPostageStamp(startX + i * (stampSize + gap), stampY, stampSize, i < progress);
+      drawPostageStamp(startX + i * (stampSize + stampGap), stampY, stampSize, i < progress);
     }
-    ctx.fillStyle = "#76543d";
-    ctx.font = "bold 34px Georgia, serif";
-    ctx.fillText(progress + " / 5 Stamps", 600, 785);
 
-    // Trigger the PNG download directly from the customer's button click.
+    ctx.fillStyle = muted;
+    ctx.font = "bold 34px Georgia, serif";
+    ctx.fillText(progress + " / 5 Stamps", 600, 780);
+
     try {
       const dataUrl = canvas.toDataURL("image/png");
       const link = document.createElement("a");
