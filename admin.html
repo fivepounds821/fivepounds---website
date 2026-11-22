@@ -47,6 +47,7 @@
         <button data-tab="customers" type="button">Customers & stamps</button>
         <button data-tab="finance" type="button">Finance & Expenses</button>
         <button data-tab="products" type="button">Products & Recipes</button>
+        <button data-tab="customQuote" type="button">Custom Cake Pricing</button>
       </div>
       <section id="businessTab">
         <div class="stats">
@@ -69,6 +70,26 @@
           </section>
         </div>
         <div class="dashboard-note">Total sales revenue includes completed and paid website orders, paid historical orders, and recorded coffee shop sales. It is not net profit.</div>
+      </section>
+      <section id="customQuoteTab" class="panel hidden">
+        <div class="toolbar"><div><strong>Custom Basque Cake Quote</strong><div class="hint">Internal pricing helper · 5-inch cakes · simple designs only</div></div><span class="pill good">From RM85</span></div>
+        <div class="customer-grid">
+          <div><label for="quoteFlavour">Basque flavour</label><select id="quoteFlavour"><option value="Signature">Signature</option><option value="MatchaMelt">MatchaMelt</option><option value="Premium Earl Grey">Premium Earl Grey</option></select></div>
+          <div><label for="quoteFruit">Fruit decoration</label><select id="quoteFruit"><option value="0">Basic fruit included · RM0</option><option value="5">A little extra · +RM5</option><option value="10">More fruit · +RM10</option><option value="15">Generous fruit · +RM15</option></select></div>
+          <div><label for="quoteCream">Cream colour / decoration</label><select id="quoteCream"><option value="0">Simple cream design · RM0</option><option value="5">One extra colour · +RM5</option><option value="10">Additional simple details · +RM10</option></select></div>
+        </div>
+        <div class="customer-grid">
+          <div><label for="quoteSpecial">Special materials (RM)</label><input id="quoteSpecial" type="number" min="0" max="500" step="0.50" value="0"></div>
+          <div><label>Base price</label><input value="RM85.00 · 5-inch Custom Basque" readonly></div>
+          <div><label>Design scope</label><input value="Simple designs only · no complex requests" readonly></div>
+        </div>
+        <div class="stat" style="margin-top:16px;background:#faf7f3">
+          <small>Suggested quotation</small><strong id="quoteTotal">RM85.00</strong>
+          <div class="hint" id="quoteBreakdown">RM85.00 base + RM0.00 add-ons</div>
+        </div>
+        <p class="hint" style="margin-top:12px">All currently offered Basque flavours are eligible for customisation. RM85 is the starting price, not a promise that every flavour or design has the same cost. Add charges for extra materials or decoration where needed. Only quote designs you can confidently make; complex designs are not accepted.</p>
+        <div class="actions" style="margin-top:14px"><button id="copyCustomQuote" type="button">Copy quotation summary</button><button id="resetCustomQuote" type="button" class="secondary">Reset</button></div>
+        <div id="customQuoteMessage" class="message" role="status" aria-live="polite"></div>
       </section>
       <section id="ordersTab" class="panel">
         <div class="toolbar">
@@ -736,8 +757,33 @@
     $("customersTab").classList.toggle("hidden", button.dataset.tab !== "customers");
     $("financeTab").classList.toggle("hidden", button.dataset.tab !== "finance");
     $("productsTab").classList.toggle("hidden", button.dataset.tab !== "products");
+    $("customQuoteTab").classList.toggle("hidden", button.dataset.tab !== "customQuote");
   }));
 
+
+  // Custom Basque Cake quotation helper (5-inch; simple designs only).
+  function updateCustomQuote() {
+    const fruit = Number($("quoteFruit").value || 0);
+    const cream = Number($("quoteCream").value || 0);
+    const special = Math.max(0, Number($("quoteSpecial").value) || 0);
+    const extras = fruit + cream + special;
+    const total = 85 + extras;
+    $("quoteTotal").textContent = money(total);
+    $("quoteBreakdown").textContent = money(85) + " base + " + money(extras) + " add-ons";
+    return {flavour:$("quoteFlavour").value, fruit, cream, special, total};
+  }
+  ["quoteFlavour","quoteFruit","quoteCream","quoteSpecial"].forEach(id => $(id).addEventListener("input", updateCustomQuote));
+  $("resetCustomQuote").addEventListener("click", () => {
+    $("quoteFlavour").value = "Signature"; $("quoteFruit").value = "0"; $("quoteCream").value = "0"; $("quoteSpecial").value = "0";
+    updateCustomQuote(); showMessage($("customQuoteMessage"), "Quotation reset.");
+  });
+  $("copyCustomQuote").addEventListener("click", async () => {
+    const q = updateCustomQuote();
+    const summary = "FIVEPOUNDS · 5-inch Custom Basque Cake\\nFlavour: " + q.flavour + "\\nStarting price: RM85.00\\nAdd-ons: " + money(q.fruit + q.cream + q.special) + "\\nSuggested quotation: " + money(q.total) + "\\nSimple designs only; final price subject to design and ingredient confirmation.";
+    try { await navigator.clipboard.writeText(summary); showMessage($("customQuoteMessage"), "Quotation summary copied.", "success"); }
+    catch { showMessage($("customQuoteMessage"), "Copy is unavailable in this browser. You can read the quotation above.", "error"); }
+  });
+  updateCustomQuote();
 
   // Products, ingredients and recipe costing.
   let editingProductId = null;
